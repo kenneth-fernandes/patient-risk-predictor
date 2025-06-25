@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException
-from api.schemas import PatientData  # Import PatientData from schemas
+from .schemas import PatientData  # Use relative import
 import pandas as pd
 import mlflow.sklearn
 import os
-from api.ml_utils import get_latest_model_path  # Import utility function
+from .ml_utils import get_latest_model_path  # Use relative import
 
 # FastAPI app
 app = FastAPI(title="Heart Disease Risk Predictor")
