@@ -1,0 +1,231 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+    
+    steps:
+    - name: Get the code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Run tests with coverage
+      run: |
+        mkdir -p reports/{coverage,tests,security}
+        python -m pytest -c config/testing/pytest.ini
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./reports/coverage/coverage.xml
+        fail_ci_if_error: false
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.python-version }}
+        path: |
+          reports/coverage/coverage.xml
+          reports/tests/test-results.xml
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Get the code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-3.11-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-3.11-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Run linting
+      run: |
+        ./scripts/quality.sh lint
+    
+    - name: Check code formatting
+      run: |
+        ./scripts/quality.sh format-check
+    
+    - name: Run type checking
+      run: |
+        ./scripts/quality.sh type-check
+
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Get the code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-3.11-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-3.11-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Run security checks
+      run: |
+        ./scripts/quality.sh security
+
+  docker:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Get the code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t patient-risk-predictor .
+    
+    - name: Test Docker container
+      run: |
+        # Start container in background
+        docker run -d -p 8000:8000 --name test-container patient-risk-predictor
+        
+        # Wait for container to be ready
+        sleep 10
+        
+        # Test health endpoint
+        curl -f http://localhost:8000/ || exit 1
+        
+        # Test prediction endpoint
+        curl -f -X POST http://localhost:8000/predict \
+          -H 'Content-Type: application/json' \
+          -d '{"age": 45, "sex": 0, "cp": 2, "trestbps": 130, "chol": 200, "fbs": 0, "restecg": 1, "thalach": 175, "exang": 0, "oldpeak": 1.0, "slope": 1, "ca": 0, "thal": 2}' || exit 1
+        
+        # Clean up
+        docker stop test-container
+        docker rm test-container
+
+  performance:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: [test, docker]
+    if: github.event_name == 'pull_request'  # Only run on PRs to save resources
+    
+    steps:
+    - name: Get the code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-3.11-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-3.11-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install locust
+    
+    - name: Start API server
+      run: |
+        python main.py &
+        sleep 10
+      
+    - name: Run performance test
+      run: |
+        # Create simple locust test file
+        cat > locustfile.py << 'EOF'
+        from locust import HttpUser, task, between
+        import json
+
+        class PredictionUser(HttpUser):
+            wait_time = between(1, 3)
+            
+            @task
+            def health_check(self):
+                self.client.get("/")
+            
+            @task(3)
+            def make_prediction(self):
+                payload = {
+                    "age": 45, "sex": 0, "cp": 2, "trestbps": 130, 
+                    "chol": 200, "fbs": 0, "restecg": 1, "thalach": 175, 
+                    "exang": 0, "oldpeak": 1.0, "slope": 1, "ca": 0, "thal": 2
+                }
+                self.client.post("/predict", json=payload)
+        EOF
+        
+        # Run light performance test (10 users, 30 seconds)
+        locust -f locustfile.py --headless -u 10 -r 2 -t 30s --host http://localhost:8000 --html performance-report.html
+    
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-report
+        path: performance-report.html
