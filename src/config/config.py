@@ -50,6 +50,7 @@ class Config:
     def __init__(self):
         # Load appropriate .env file based on environment detection
         self.is_docker = is_running_in_docker()
+        self.is_running_in_docker = self.is_docker  # Alias for test compatibility
         self._load_env_files()
         self._mlflow_uri = None
         

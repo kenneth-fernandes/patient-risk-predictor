@@ -5,7 +5,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from ucimlrepo import fetch_ucirepo
-import numpy as np
 from src.config import config
 
 def preprocess_features(features):
