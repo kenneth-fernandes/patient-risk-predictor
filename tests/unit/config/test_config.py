@@ -254,7 +254,7 @@ class TestConfigIntegration:
     
     def test_full_config_load_local(self, test_config_files, mock_local_env):
         """Test full config loading in local environment."""
-        with patch('pathlib.Path') as mock_path:
+        with patch('src.config.config.Path') as mock_path:
             mock_path.return_value.parent.parent.parent = test_config_files.parent
             
             config = Config()
@@ -269,7 +269,7 @@ class TestConfigIntegration:
     
     def test_full_config_load_docker(self, test_config_files, mock_docker_env):
         """Test full config loading in Docker environment."""
-        with patch('pathlib.Path') as mock_path:
+        with patch('src.config.config.Path') as mock_path:
             mock_path.return_value.parent.parent.parent = test_config_files.parent
             
             config = Config()

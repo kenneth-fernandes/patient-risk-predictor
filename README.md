@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/kenneth-fernandes/patient-risk-predictor/actions/workflows/ci.yml/badge.svg)](https://github.com/kenneth-fernandes/patient-risk-predictor/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/kenneth-fernandes/patient-risk-predictor/branch/main/graph/badge.svg)](https://codecov.io/gh/kenneth-fernandes/patient-risk-predictor)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -232,7 +232,7 @@ pip install -r requirements.txt
 
 **Benefits:**
 - ✅ **Catch conflicts early**: Find dependency issues before CI/CD
-- ✅ **Multi-Python support**: Test compatibility across Python 3.9, 3.10, 3.11
+- ✅ **Multi-Python support**: Test compatibility across Python 3.11, 3.12
 - ✅ **No installations**: Uses `--dry-run` flag to test without installing
 - ✅ **Fast feedback**: Get results in seconds instead of waiting for CI
 
@@ -250,7 +250,7 @@ The project includes automated testing on every push and pull request:
 
 - ✅ **Code Quality**: Linting, formatting, type checking
 - ✅ **Security Scanning**: Safety and Bandit security checks
-- ✅ **Multi-Python Testing**: Tests on Python 3.9, 3.10, 3.11
+- ✅ **Multi-Python Testing**: Tests on Python 3.11, 3.12
 - ✅ **Docker Testing**: Container build and functionality tests
 - ✅ **Performance Testing**: Load testing with Locust
 - ✅ **Coverage Reporting**: Automated coverage tracking
@@ -358,7 +358,7 @@ pip install -r requirements.txt
 
 **Why test dependencies?**
 - ✅ Catch version conflicts before committing
-- ✅ Ensure compatibility across Python 3.9, 3.10, 3.11
+- ✅ Ensure compatibility across Python 3.11, 3.12
 - ✅ Avoid CI/CD failures from dependency issues
 - ✅ Test locally without installing packages
 

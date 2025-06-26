@@ -95,9 +95,8 @@ overall_result=0
 
 # List of Python versions to test (matching CI matrix)
 python_versions=(
-    "python3.9:Python 3.9"
-    "python3.10:Python 3.10" 
     "python3.11:Python 3.11"
+    "python3.12:Python 3.12"
 )
 
 for version_info in "${python_versions[@]}"; do
