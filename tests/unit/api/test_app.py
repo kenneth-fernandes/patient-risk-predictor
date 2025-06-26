@@ -29,8 +29,9 @@ class TestHealthCheck:
     
     def test_health_check_with_model(self, client):
         """Test health check when model is loaded."""
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)  # Model is truthy
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
+            mock_get_model.return_value = mock_model
             
             response = client.get("/")
             
@@ -39,7 +40,7 @@ class TestHealthCheck:
     
     def test_health_check_without_model(self, client):
         """Test health check when model is not loaded."""
-        with patch('src.api.app.model', None):
+        with patch('src.api.app.get_model', return_value=None):
             response = client.get("/")
             
             assert response.status_code == 200
@@ -47,12 +48,13 @@ class TestHealthCheck:
     
     def test_health_check_function_directly(self):
         """Test health_check function directly."""
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
+            mock_get_model.return_value = mock_model
             result = health_check()
             assert result == {"message": "Model is up and running"}
         
-        with patch('src.api.app.model', None):
+        with patch('src.api.app.get_model', return_value=None):
             result = health_check()
             assert result == {"message": "Model not loaded"}
 
@@ -62,9 +64,10 @@ class TestPredictEndpoint:
     
     def test_predict_success(self, client, sample_patient_data):
         """Test successful prediction."""
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
             mock_model.predict.return_value = np.array([1])
+            mock_get_model.return_value = mock_model
             
             response = client.post("/predict", json=sample_patient_data)
             
@@ -79,7 +82,7 @@ class TestPredictEndpoint:
     
     def test_predict_model_not_loaded(self, client, sample_patient_data):
         """Test prediction when model is not loaded."""
-        with patch('src.api.app.model', None):
+        with patch('src.api.app.get_model', return_value=None):
             response = client.post("/predict", json=sample_patient_data)
             
             assert response.status_code == 503
@@ -122,9 +125,10 @@ class TestPredictEndpoint:
     
     def test_predict_model_prediction_error(self, client, sample_patient_data):
         """Test handling of model prediction errors."""
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
             mock_model.predict.side_effect = Exception("Model prediction failed")
+            mock_get_model.return_value = mock_model
             
             response = client.post("/predict", json=sample_patient_data)
             
@@ -134,9 +138,10 @@ class TestPredictEndpoint:
     
     def test_predict_dataframe_conversion(self, client, sample_patient_data):
         """Test that input data is correctly converted to DataFrame."""
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
             mock_model.predict.return_value = np.array([0])
+            mock_get_model.return_value = mock_model
             
             with patch('src.api.app.pd.DataFrame') as mock_dataframe:
                 mock_df_instance = Mock()
@@ -159,9 +164,10 @@ class TestPredictEndpoint:
         ]
         
         for model_output, expected_risk in test_cases:
-            with patch('src.api.app.model') as mock_model:
-                mock_model.__bool__ = Mock(return_value=True)
+            with patch('src.api.app.get_model') as mock_get_model:
+                mock_model = Mock()
                 mock_model.predict.return_value = model_output
+                mock_get_model.return_value = mock_model
                 
                 response = client.post("/predict", json=sample_patient_data)
                 
@@ -174,9 +180,10 @@ class TestPredictEndpoint:
         
         patient_data = PatientData(**sample_patient_data)
         
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
             mock_model.predict.return_value = np.array([1])
+            mock_get_model.return_value = mock_model
             
             result = predict(patient_data)
             
@@ -189,7 +196,7 @@ class TestPredictEndpoint:
         
         patient_data = PatientData(**sample_patient_data)
         
-        with patch('src.api.app.model', None):
+        with patch('src.api.app.get_model', return_value=None):
             with pytest.raises(HTTPException) as exc_info:
                 predict(patient_data)
             
@@ -282,9 +289,10 @@ class TestEndToEndWorkflow:
             "thal": 3.0
         }
         
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
             mock_model.predict.return_value = np.array([1])
+            mock_get_model.return_value = mock_model
             
             # Make prediction request
             response = client.post("/predict", json=patient_data)
