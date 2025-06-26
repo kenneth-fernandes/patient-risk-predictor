@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for MLflow
+  postgres:
+    image: postgres:13
+    container_name: patient-risk-predictor-postgres
+    environment:
+      - POSTGRES_DB=mlflow
+      - POSTGRES_USER=mlflow
+      - POSTGRES_PASSWORD=mlflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mlflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # MLflow Tracking Server
+  mlflow:
+    image: python:3.11-slim
+    container_name: patient-risk-predictor-mlflow
+    ports:
+      - "5001:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=postgresql://mlflow:mlflow@postgres:5432/mlflow
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/data/artifacts
+    volumes:
+      - mlflow_data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      bash -c "
+        apt-get update && apt-get install -y curl &&
+        pip install mlflow==3.1.1 psycopg2-binary &&
+        mkdir -p /data/artifacts &&
+        chmod 777 /data &&
+        chmod 777 /data/artifacts &&
+        mlflow server --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow --default-artifact-root /data/artifacts --host 0.0.0.0 --port 5000
+      "
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 120s
+
+  # Main API Service
+  api:
+    build: .
+    container_name: patient-risk-predictor-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - mlruns_data:/app/mlruns
+      - logs_data:/app/logs
+      - mlflow_data:/data
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Model Training Service (on-demand)
+  trainer:
+    build: .
+    container_name: patient-risk-predictor-trainer
+    user: "0:0"
+    environment:
+      - PYTHONPATH=/app
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - GIT_PYTHON_REFRESH=quiet
+    volumes:
+      - mlruns_data:/app/mlruns
+      - logs_data:/app/logs
+      - mlflow_data:/data
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    command: ["python", "main.py", "train"]
+    profiles:
+      - training
+
+volumes:
+  postgres_data:
+  mlflow_data:
+  mlruns_data:
+  logs_data:

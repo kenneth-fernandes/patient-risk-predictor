@@ -6,7 +6,7 @@ import os
 from .ml_utils import get_latest_model_path  # Use relative import
 
 # FastAPI app
-app = FastAPI(title="Heart Disease Risk Predictor")
+app = FastAPI(title="Patient Risk Predictor")
 
 
 # Load model from MLflow
