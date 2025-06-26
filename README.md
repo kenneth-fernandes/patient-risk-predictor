@@ -196,8 +196,9 @@ This project includes comprehensive test coverage with unit tests, integration t
 # Install all dependencies (includes testing tools)
 pip install -r requirements.txt
 
-# Run all tests with coverage
+# Run all tests with coverage (default)
 ./scripts/test.sh
+./scripts/test.sh all
 
 # Run only unit tests
 ./scripts/test.sh unit
@@ -205,15 +206,55 @@ pip install -r requirements.txt
 # Run only integration tests
 ./scripts/test.sh integration
 
-# Run tests in parallel (faster)
+# Run tests in parallel (faster if pytest-xdist available)
 ./scripts/test.sh parallel
 
-# Quick test run (no coverage)
+# Quick test run (no coverage, faster)
 ./scripts/test.sh quick
 
-# Generate coverage report
+# Generate detailed coverage report
 ./scripts/test.sh coverage
+
+# Run complete CI test suite
+./scripts/test.sh ci
+
+# Get help with test options
+./scripts/test.sh help
 ```
+
+**Test Output Files:**
+- **Coverage Reports**: `reports/coverage/htmlcov/index.html` (HTML), `reports/coverage/coverage.xml` (XML)
+- **Test Results**: `reports/tests/test-results.xml` (JUnit format)
+- **Unit Test Results**: `reports/tests/test-results-unit.xml`
+- **Integration Test Results**: `reports/tests/test-results-integration.xml`
+
+### 🔍 Code Quality & Security Checks
+
+```bash
+# Run all quality checks (linting, formatting, type checking, security)
+./scripts/quality.sh
+
+# Individual quality checks
+./scripts/quality.sh lint         # Linting with flake8
+./scripts/quality.sh format       # Auto-format code with black + isort
+./scripts/quality.sh format-check # Check formatting without fixing
+./scripts/quality.sh type-check   # Type checking with mypy
+./scripts/quality.sh security     # Security scans (safety + bandit)
+
+# Get help with quality options
+./scripts/quality.sh help
+```
+
+**Quality Tools Configuration:**
+- **flake8**: Max line length 100, ignores E203 (whitespace before ':'), W503 (line break before binary operator)
+- **black**: Line length 100, automatic code formatting
+- **isort**: Import sorting with black profile compatibility
+- **mypy**: Type checking with missing imports ignored for flexibility
+- **safety**: Scans for known security vulnerabilities in dependencies
+- **bandit**: Static security analysis for common Python security issues
+
+**Quality Reports:**
+- **Security Issues**: `reports/security/bandit-report.json` (generated only if issues found)
 
 ### 🐍 Dependency Compatibility Testing
 
@@ -307,7 +348,8 @@ All development commands are organized in shell scripts for easy use:
 ```bash
 ./scripts/test_deps.sh       # Test dependencies (30 seconds)
 ./scripts/test.sh quick      # Quick tests (2-3 minutes)
-./scripts/quality.sh         # Code quality checks (1 minute)
+./scripts/quality.sh         # Code quality & security (1-2 minutes)
+./scripts/test.sh all        # Full tests with coverage (5-10 minutes)
 ```
 
 **🛠️ Development:**
@@ -342,11 +384,15 @@ pip install -r requirements.txt
 
 ### **🧪 Testing Options**
 ```bash
-./scripts/test.sh              # Run all tests with coverage
+./scripts/test.sh              # Run all tests with coverage (default)
+./scripts/test.sh all          # Run all tests with coverage
 ./scripts/test.sh unit         # Run unit tests only
 ./scripts/test.sh integration  # Run integration tests only
 ./scripts/test.sh quick        # Run tests without coverage (faster)
-./scripts/test.sh parallel     # Run tests in parallel
+./scripts/test.sh parallel     # Run tests in parallel (if pytest-xdist available)
+./scripts/test.sh coverage     # Generate detailed coverage report
+./scripts/test.sh ci           # Run complete CI test suite
+./scripts/test.sh help         # Show test command help
 ```
 
 ### **🐍 Dependency Testing**
@@ -373,11 +419,24 @@ pip install -r requirements.txt
 
 ### **🔍 Code Quality & Security**
 ```bash
-./scripts/quality.sh           # Run all quality checks
-./scripts/quality.sh lint      # Run linting only
-./scripts/quality.sh format    # Format code with black
-./scripts/quality.sh security  # Run security scans
+./scripts/quality.sh              # Run all quality checks (default)
+./scripts/quality.sh all          # Run all quality checks
+./scripts/quality.sh lint         # Run linting with flake8
+./scripts/quality.sh format       # Format code with black and isort
+./scripts/quality.sh format-check # Check code formatting without fixing
+./scripts/quality.sh type-check   # Run type checking with mypy
+./scripts/quality.sh security     # Run security checks (safety + bandit)
+./scripts/quality.sh help         # Show quality command help
 ```
+
+**Quality Check Tools:**
+- **Linting**: flake8 with max line length 100, ignoring E203,W503
+- **Formatting**: black (line length 100) + isort (black profile)
+- **Type Checking**: mypy with missing imports ignored
+- **Security**: safety (vulnerability scanning) + bandit (security linting)
+
+**Quality Reports Generated:**
+- **Security Reports**: `reports/security/bandit-report.json` (if issues found)
 
 ### **🐳 Docker Utilities**
 ```bash
