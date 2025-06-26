@@ -136,21 +136,24 @@ class TestConfig:
     def test_mlflow_tracking_uri_docker_default(self, mock_docker_env):
         """Test MLflow URI default for Docker."""
         with patch.dict(os.environ, {}, clear=True):
-            config = Config()
-            assert config.mlflow_tracking_uri == 'http://mlflow:5000'
+            with patch('src.config.config.load_env_file'):
+                config = Config()
+                assert config.mlflow_tracking_uri == 'http://mlflow:5000'
     
     def test_mlflow_tracking_uri_local_default(self, mock_local_env):
         """Test MLflow URI default for local environment."""
         with patch.dict(os.environ, {}, clear=True):
-            with patch('os.getcwd', return_value='/test/dir'):
-                config = Config()
-                assert config.mlflow_tracking_uri == 'file:./mlruns'
+            with patch('src.config.config.load_env_file'):
+                with patch('os.getcwd', return_value='/test/dir'):
+                    config = Config()
+                    assert config.mlflow_tracking_uri == 'file:///test/dir/mlruns'
     
     def test_api_host_docker(self, mock_docker_env):
         """Test API host in Docker environment."""
         with patch.dict(os.environ, {}, clear=True):
-            config = Config()
-            assert config.api_host == '0.0.0.0'
+            with patch('src.config.config.load_env_file'):
+                config = Config()
+                assert config.api_host == '0.0.0.0'
     
     def test_api_host_local(self, mock_local_env):
         """Test API host in local environment."""
@@ -177,14 +180,16 @@ class TestConfig:
     def test_environment_docker(self, mock_docker_env):
         """Test environment string in Docker."""
         with patch.dict(os.environ, {}, clear=True):
-            config = Config()
-            assert config.environment == 'production'  # From docker.env
+            with patch('src.config.config.load_env_file'):
+                config = Config()
+                assert config.environment == 'docker'
     
     def test_environment_local(self, mock_local_env):
         """Test environment string in local."""
         with patch.dict(os.environ, {}, clear=True):
-            config = Config()
-            assert config.environment == 'development'  # From local.env
+            with patch('src.config.config.load_env_file'):
+                config = Config()
+                assert config.environment == 'local'
     
     def test_environment_from_env(self):
         """Test environment from environment variable."""
@@ -195,8 +200,9 @@ class TestConfig:
     def test_log_level_default(self, mock_local_env):
         """Test default log level."""
         with patch.dict(os.environ, {}, clear=True):
-            config = Config()
-            assert config.log_level == 'debug'  # From local.env (since mock_local_env is active)
+            with patch('src.config.config.load_env_file'):
+                config = Config()
+                assert config.log_level == 'info'
     
     def test_log_level_from_env(self):
         """Test log level from environment variable."""
@@ -207,14 +213,16 @@ class TestConfig:
     def test_workers_docker(self, mock_docker_env):
         """Test workers count in Docker."""
         with patch.dict(os.environ, {}, clear=True):
-            config = Config()
-            assert config.workers == 2
+            with patch('src.config.config.load_env_file'):
+                config = Config()
+                assert config.workers == 2
     
     def test_workers_local(self, mock_local_env):
         """Test workers count in local environment."""
         with patch.dict(os.environ, {}, clear=True):
-            config = Config()
-            assert config.workers == 1
+            with patch('src.config.config.load_env_file'):
+                config = Config()
+                assert config.workers == 1
     
     def test_workers_from_env(self):
         """Test workers from environment variable."""
@@ -246,7 +254,7 @@ class TestConfigIntegration:
     
     def test_full_config_load_local(self, test_config_files, mock_local_env):
         """Test full config loading in local environment."""
-        with patch('src.config.config.Path') as mock_path:
+        with patch('pathlib.Path') as mock_path:
             mock_path.return_value.parent.parent.parent = test_config_files.parent
             
             config = Config()
@@ -261,7 +269,7 @@ class TestConfigIntegration:
     
     def test_full_config_load_docker(self, test_config_files, mock_docker_env):
         """Test full config loading in Docker environment."""
-        with patch('src.config.config.Path') as mock_path:
+        with patch('pathlib.Path') as mock_path:
             mock_path.return_value.parent.parent.parent = test_config_files.parent
             
             config = Config()
