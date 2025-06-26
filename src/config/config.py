@@ -96,7 +96,7 @@ class Config:
     @property
     def api_host(self):
         """API server host."""
-        return os.getenv("HOST", "0.0.0.0" if self.is_docker else "127.0.0.1")
+        return os.getenv("HOST", "0.0.0.0" if self.is_docker else "127.0.0.1")  # nosec B104
 
     @property
     def api_port(self):
