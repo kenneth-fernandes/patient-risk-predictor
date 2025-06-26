@@ -43,9 +43,10 @@ class TestAPIIntegration:
     
     def test_predict_endpoint_integration_with_mock_model(self, integration_client, sample_patient_data):
         """Test prediction endpoint with mocked model."""
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
             mock_model.predict.return_value = np.array([1])
+            mock_get_model.return_value = mock_model
             
             response = integration_client.post("/predict", json=sample_patient_data)
             
@@ -82,8 +83,9 @@ class TestAPIIntegration:
     
     def test_multiple_predictions_integration(self, integration_client, sample_patient_data):
         """Test multiple consecutive predictions."""
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
+            mock_get_model.return_value = mock_model
             
             # Test multiple predictions with different outcomes
             test_cases = [
@@ -203,9 +205,10 @@ class TestDataFlowIntegration:
             "thal": 1
         }
         
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
             mock_model.predict.return_value = np.array([1])
+            mock_get_model.return_value = mock_model
             
             response = integration_client.post("/predict", json=patient_input)
             
@@ -255,8 +258,9 @@ class TestDataFlowIntegration:
             "thal": 2.0
         }
         
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
+            mock_get_model.return_value = mock_model
             
             # Test high risk patient
             mock_model.predict.return_value = np.array([1])
@@ -276,8 +280,9 @@ class TestErrorRecoveryIntegration:
     
     def test_model_failure_recovery(self, integration_client, sample_patient_data):
         """Test that API handles model failures gracefully."""
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
+            mock_get_model.return_value = mock_model
             
             # Simulate different types of model failures
             failure_scenarios = [
@@ -300,9 +305,10 @@ class TestErrorRecoveryIntegration:
         import concurrent.futures
         import threading
         
-        with patch('src.api.app.model') as mock_model:
-            mock_model.__bool__ = Mock(return_value=True)
+        with patch('src.api.app.get_model') as mock_get_model:
+            mock_model = Mock()
             mock_model.predict.return_value = np.array([1])
+            mock_get_model.return_value = mock_model
             
             # Use a lock to ensure model is called for each request
             call_count = 0
