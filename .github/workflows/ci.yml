@@ -41,59 +41,13 @@ jobs:
     - name: Run tests with coverage
       run: |
         mkdir -p reports/{coverage,tests,security}
-        echo "Python version and path:"
-        python --version
-        which python
-        echo "Python path contents:"
-        python -c "import sys; print('\n'.join(sys.path))"
-        echo "Checking if src directory exists:"
-        ls -la src/
-        echo "Running pytest with coverage..."
-        echo "Contents of pytest.ini:"
-        cat config/testing/pytest.ini
-        echo "Test collection first:"
-        PYTHONPATH=. python -m pytest -c config/testing/pytest.ini --collect-only || echo "Collection failed"
-        echo "Now running tests with coverage:"
-        PYTHONPATH=. python -m pytest -c config/testing/pytest.ini --verbose --tb=long --continue-on-collection-errors --cov=src --cov-report=xml:reports/coverage/coverage.xml || echo "Tests completed with issues"
-        echo "Test run completed"
+        PYTHONPATH=. python -m pytest -c config/testing/pytest.ini --cov=src --cov-report=xml:reports/coverage/coverage.xml
 
-    - name: 🔍 Debug - Confirm coverage.xml exists
-      run: |
-        echo "Current working directory:"
-        pwd
-        echo "Listing all reports:"
-        find reports -type f -name "*.xml" -ls 2>/dev/null || echo "No XML files found"
-        echo "Listing coverage directory:"
-        ls -lah reports/coverage/ || echo "Coverage directory doesn't exist"
-        echo "Coverage.xml file details:"
-        ls -lah reports/coverage/coverage.xml || echo "coverage.xml not found"
-        echo "Preview of coverage.xml:"
-        head -n 10 reports/coverage/coverage.xml || echo "coverage.xml cannot be read"
-        
-        # Generate minimal coverage if file doesn't exist
-        if [ ! -f reports/coverage/coverage.xml ]; then
-          echo "Generating minimal coverage file for Codecov..."
-          mkdir -p reports/coverage
-          echo '<?xml version="1.0" ?><coverage version="7.3.4"><sources><source>.</source></sources><packages/></coverage>' > reports/coverage/coverage.xml
-          echo "Minimal coverage file created"
-        fi
-
-    - name: Upload coverage to Codecov (only Python 3.11)
-      if: matrix.python-version == '3.11'
+    - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./reports/coverage/coverage.xml
-        verbose: true
-        fail_ci_if_error: false
-        
-    # Fallback upload without token (for public repos)
-    - name: Upload coverage to Codecov (fallback, no token)
-      if: matrix.python-version == '3.11' && failure()
-      uses: codecov/codecov-action@v5
-      with:
-        files: ./reports/coverage/coverage.xml
-        verbose: true
         fail_ci_if_error: false
 
     - name: Upload test results
