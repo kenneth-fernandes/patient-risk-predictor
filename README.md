@@ -293,7 +293,7 @@ The project includes automated testing on every push and pull request:
 - ✅ **Security Scanning**: Safety and Bandit security checks
 - ✅ **Multi-Python Testing**: Tests on Python 3.11, 3.12
 - ✅ **Docker Testing**: Container build and functionality tests
-- ✅ **Performance Testing**: Load testing with Locust
+<!-- - ✅ **Performance Testing**: Load testing with Locust -->
 - ✅ **Coverage Reporting**: Automated coverage tracking
 
 ### Test the API
