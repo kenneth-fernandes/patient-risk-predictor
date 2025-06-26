@@ -82,7 +82,7 @@ urllib3==2.5.0
 # Data processing and utilities
 joblib==1.5.1
 threadpoolctl==3.6.0
-packaging==25.0
+packaging==23.2
 python-dateutil==2.9.0.post0
 pytz==2023.3
 tzdata==2025.2
