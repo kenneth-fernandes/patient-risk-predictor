@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException
 from .schemas import PatientData  # Use relative import
 import pandas as pd
 import mlflow.sklearn
-import os
 from .ml_utils import get_latest_model_path  # Use relative import
 
 # FastAPI app
@@ -13,8 +12,10 @@ app = FastAPI(title="Patient Risk Predictor")
 try:
     model_path = get_latest_model_path()
     model = mlflow.sklearn.load_model(model_path)
+    app.model = model  # Attach model to app for testing
 except Exception as e:
     model = None
+    app.model = None  # Attach None to app for testing
     print(f"Model loading failed: {e}")
 
 
