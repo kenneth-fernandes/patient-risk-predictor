@@ -1,6 +1,7 @@
 """Tests for ML utilities module."""
 
 from unittest.mock import Mock, patch
+
 import pandas as pd
 import pytest
 
