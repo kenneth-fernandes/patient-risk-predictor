@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class PatientData(BaseModel):
     age: float
     sex: float

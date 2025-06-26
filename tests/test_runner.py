@@ -1,35 +1,30 @@
 """Test runner script for the Patient Risk Predictor application."""
 
-import sys
 import subprocess
-from pathlib import Path
+import sys
 
 
 def run_tests(test_type="all", verbose=True, coverage=True):
     """
     Run tests with different configurations.
-    
+
     Args:
         test_type (str): Type of tests to run ("unit", "integration", "all")
         verbose (bool): Whether to run in verbose mode
         coverage (bool): Whether to include coverage reporting
     """
-    
+
     # Base pytest command
     cmd = ["python", "-m", "pytest"]
-    
+
     # Add verbosity
     if verbose:
         cmd.append("-v")
-    
+
     # Add coverage if requested
     if coverage:
-        cmd.extend([
-            "--cov=src",
-            "--cov-report=term-missing",
-            "--cov-report=html:htmlcov"
-        ])
-    
+        cmd.extend(["--cov=src", "--cov-report=term-missing", "--cov-report=html:htmlcov"])
+
     # Add test selection based on type
     if test_type == "unit":
         cmd.append("tests/unit/")
@@ -40,13 +35,13 @@ def run_tests(test_type="all", verbose=True, coverage=True):
     else:
         print(f"Unknown test type: {test_type}")
         return False
-    
+
     # Run the tests
     print(f"Running {test_type} tests...")
     print(f"Command: {' '.join(cmd)}")
-    
+
     try:
-        result = subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True)
         print(f"\n✅ {test_type.title()} tests completed successfully!")
         return True
     except subprocess.CalledProcessError as e:
@@ -57,24 +52,24 @@ def run_tests(test_type="all", verbose=True, coverage=True):
 def run_specific_test(test_path, verbose=True):
     """
     Run a specific test file or test function.
-    
+
     Args:
         test_path (str): Path to specific test (e.g., "tests/unit/api/test_app.py::TestHealthCheck")
         verbose (bool): Whether to run in verbose mode
     """
     cmd = ["python", "-m", "pytest"]
-    
+
     if verbose:
         cmd.append("-v")
-    
+
     cmd.append(test_path)
-    
+
     print(f"Running specific test: {test_path}")
     print(f"Command: {' '.join(cmd)}")
-    
+
     try:
-        result = subprocess.run(cmd, check=True)
-        print(f"\n✅ Test completed successfully!")
+        subprocess.run(cmd, check=True)
+        print("\n✅ Test completed successfully!")
         return True
     except subprocess.CalledProcessError as e:
         print(f"\n❌ Test failed with exit code {e.returncode}")
@@ -106,7 +101,7 @@ def main():
         print("  python tests/test_runner.py quick")
         print("  python tests/test_runner.py tests/unit/api/test_app.py")
         success = False
-    
+
     sys.exit(0 if success else 1)
 
 

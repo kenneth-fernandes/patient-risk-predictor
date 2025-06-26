@@ -2,10 +2,12 @@
 import mlflow
 import mlflow.sklearn
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 from ucimlrepo import fetch_ucirepo
+
 from src.config import config
+
 
 def preprocess_features(features):
     """
@@ -17,15 +19,16 @@ def preprocess_features(features):
         features[column] = features[column].astype("float64")
     return features
 
+
 def train_patient_risk_model(n_estimators=100, test_size=0.2, random_state=42):
     """
     Train a Random Forest model for patient risk prediction using MLflow tracking.
-    
+
     Args:
         n_estimators (int): Number of trees in the random forest
         test_size (float): Proportion of dataset to include in the test split
         random_state (int): Random state for reproducibility
-    
+
     Returns:
         tuple: (trained model, accuracy score)
     """
@@ -64,14 +67,12 @@ def train_patient_risk_model(n_estimators=100, test_size=0.2, random_state=42):
         mlflow.log_param("n_estimators", n_estimators)
         mlflow.log_metric("accuracy", acc)
         mlflow.sklearn.log_model(
-            model, 
-            name=config.model_name,
-            signature=signature,
-            input_example=input_example
+            model, name=config.model_name, signature=signature, input_example=input_example
         )
 
         print(f"Model trained. Accuracy: {acc:.4f}")
         return model, acc
+
 
 if __name__ == "__main__":
     # Execute training when script is run directly
