@@ -60,6 +60,12 @@ show_all_commands() {
     echo -e "  ${GREEN}quick${NC}             Run tests without coverage (faster)"
     echo -e "  ${GREEN}coverage${NC}          Generate detailed coverage report"
     echo ""
+    echo -e "${WHITE}${BOLD}./scripts/test_deps.sh${NC}"
+    echo -e "  ${GREEN}(no args)${NC}         Test dependency compatibility (current Python)"
+    echo ""
+    echo -e "${WHITE}${BOLD}./scripts/test_deps_multi.sh${NC}"
+    echo -e "  ${GREEN}(no args)${NC}         Test dependency compatibility (multiple Python versions)"
+    echo ""
     
     print_section "🔍 CODE QUALITY"
     echo -e "${WHITE}${BOLD}./scripts/quality.sh${NC}"
@@ -85,6 +91,11 @@ show_all_commands() {
     echo -e "  ${GREEN}docker${NC}            Clean Docker resources"
     echo ""
     
+    print_section "🐍 PYTHON SETUP"
+    echo -e "${WHITE}${BOLD}./scripts/install_python_versions.sh${NC}"
+    echo -e "  ${GREEN}(no args)${NC}         Get instructions for installing multiple Python versions"
+    echo ""
+    
     print_section "🚀 APPLICATION"
     echo -e "${WHITE}${BOLD}./scripts/run_local.sh${NC}"
     echo -e "  ${GREEN}full${NC}              Train model and run API"
@@ -101,6 +112,7 @@ show_all_commands() {
     echo ""
     
     echo -e "${YELLOW}${BOLD}Before Committing:${NC}"
+    echo -e "  ${CYAN}./scripts/test_deps.sh${NC}           ${WHITE}# Test dependencies${NC}"
     echo -e "  ${CYAN}./scripts/test.sh${NC}                ${WHITE}# Run all tests${NC}"
     echo -e "  ${CYAN}./scripts/quality.sh${NC}             ${WHITE}# Check code quality${NC}"
     echo ""
