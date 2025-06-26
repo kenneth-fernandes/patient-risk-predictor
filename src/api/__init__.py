@@ -1,7 +1,7 @@
 """
-API Module - FastAPI Heart Disease Risk Prediction Server
+API Module - FastAPI Patient Risk Prediction Server
 
-This module provides the FastAPI application for heart disease risk prediction,
+This module provides the FastAPI application for patient risk prediction,
 including data schemas, model utilities, and prediction endpoints.
 """
 

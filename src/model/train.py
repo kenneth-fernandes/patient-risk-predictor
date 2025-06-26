@@ -1,4 +1,4 @@
-# Simple ML Training with MLflow - Heart Disease Prediction Model
+# Simple ML Training with MLflow - Patient Risk Prediction Model
 import mlflow
 import mlflow.sklearn
 from sklearn.ensemble import RandomForestClassifier
@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from ucimlrepo import fetch_ucirepo
 import numpy as np
+from src.config import config
 
 def preprocess_features(features):
     """
@@ -17,9 +18,9 @@ def preprocess_features(features):
         features.loc[:, column] = features[column].astype("float64")
     return features
 
-def train_heart_disease_model(n_estimators=100, test_size=0.2, random_state=42):
+def train_patient_risk_model(n_estimators=100, test_size=0.2, random_state=42):
     """
-    Train a Random Forest model for heart disease prediction using MLflow tracking.
+    Train a Random Forest model for patient risk prediction using MLflow tracking.
     
     Args:
         n_estimators (int): Number of trees in the random forest
@@ -30,19 +31,21 @@ def train_heart_disease_model(n_estimators=100, test_size=0.2, random_state=42):
         tuple: (trained model, accuracy score)
     """
     # Fetch UCI heart disease dataset (id=45)
-    heart_disease = fetch_ucirepo(id=45)
+    dataset = fetch_ucirepo(id=45)
 
     # Prepare and preprocess features
-    x_features = preprocess_features(heart_disease.data.features)
-    y = heart_disease.data.targets.values.ravel()  # Target: presence of heart disease (1) or not (0)
+    x_features = preprocess_features(dataset.data.features)
+    y = dataset.data.targets.values.ravel()  # Target: presence of medical condition (1) or not (0)
 
     # Create train/test splits for model evaluation
     x_train, x_test, y_train, y_test = train_test_split(
         x_features, y, test_size=test_size, random_state=random_state
     )
 
-    # Initialize MLflow experiment for tracking
-    mlflow.set_experiment("heart_disease_prediction")
+    # Set MLflow tracking URI and experiment based on environment
+    mlflow.set_tracking_uri(config.mlflow_tracking_uri)
+    mlflow.set_experiment(config.experiment_name)
+    print(f"Using MLflow URI: {config.mlflow_tracking_uri} (environment: {config.environment})")
 
     # Start MLflow run to track parameters, metrics, and model
     with mlflow.start_run():
@@ -63,7 +66,7 @@ def train_heart_disease_model(n_estimators=100, test_size=0.2, random_state=42):
         mlflow.log_metric("accuracy", acc)
         mlflow.sklearn.log_model(
             model, 
-            name="random_forest_model",
+            name=config.model_name,
             signature=signature,
             input_example=input_example
         )
@@ -73,4 +76,4 @@ def train_heart_disease_model(n_estimators=100, test_size=0.2, random_state=42):
 
 if __name__ == "__main__":
     # Execute training when script is run directly
-    model, accuracy = train_heart_disease_model()
+    model, accuracy = train_patient_risk_model()
