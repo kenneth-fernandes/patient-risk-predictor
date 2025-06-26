@@ -20,11 +20,11 @@ def load_model():
     try:
         model_path = get_latest_model_path()
         model = mlflow.sklearn.load_model(model_path)
-        app.model = model  # Attach model to app for testing
+        setattr(app, "model", model)  # Attach model to app for testing
         print(f"Model loaded successfully from: {model_path}")
     except Exception as e:
         model = None
-        app.model = None  # Attach None to app for testing
+        setattr(app, "model", None)  # Attach None to app for testing
         print(f"Model loading failed: {e}")
     return model
 
@@ -39,7 +39,7 @@ if os.getenv("ENVIRONMENT") != "test":
     load_model()
 else:
     # In test environment, start with no model
-    app.model = None
+    setattr(app, "model", None)
 
 
 @app.get("/")
