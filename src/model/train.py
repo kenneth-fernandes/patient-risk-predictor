@@ -15,7 +15,7 @@ def preprocess_features(features):
     """
     # Convert all integer columns to float64
     for column in features.select_dtypes(include=["int64"]).columns:
-        features.loc[:, column] = features[column].astype("float64")
+        features[column] = features[column].astype("float64")
     return features
 
 def train_patient_risk_model(n_estimators=100, test_size=0.2, random_state=42):
