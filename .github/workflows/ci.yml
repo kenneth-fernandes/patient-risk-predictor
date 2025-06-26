@@ -49,7 +49,12 @@ jobs:
         echo "Checking if src directory exists:"
         ls -la src/
         echo "Running pytest with coverage..."
-        PYTHONPATH=. python -m pytest -c config/testing/pytest.ini --verbose --tb=long --continue-on-collection-errors || echo "Tests completed with issues"
+        echo "Contents of pytest.ini:"
+        cat config/testing/pytest.ini
+        echo "Test collection first:"
+        PYTHONPATH=. python -m pytest -c config/testing/pytest.ini --collect-only || echo "Collection failed"
+        echo "Now running tests with coverage:"
+        PYTHONPATH=. python -m pytest -c config/testing/pytest.ini --verbose --tb=long --continue-on-collection-errors --cov=src --cov-report=xml:reports/coverage/coverage.xml || echo "Tests completed with issues"
         echo "Test run completed"
 
     - name: 🔍 Debug - Confirm coverage.xml exists
