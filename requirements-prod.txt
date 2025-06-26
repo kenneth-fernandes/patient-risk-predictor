@@ -1,0 +1,46 @@
+# ===================================================================
+# Patient Risk Predictor - Production Only Dependencies
+# ===================================================================
+# Use this file for production deployments where you don't need 
+# development/testing tools
+# ===================================================================
+
+# FastAPI and Web Server
+fastapi==0.115.12
+uvicorn==0.34.0
+starlette==0.46.2
+pydantic==2.10.6
+pydantic_core==2.27.2
+
+# Machine Learning and Data Science
+numpy==1.26.4
+pandas==2.3.0
+scikit-learn==1.7.0
+scipy==1.15.3
+
+# MLflow and Experiment Tracking
+mlflow==3.1.0
+
+# UCI ML Repository
+ucimlrepo==0.0.7
+
+# HTTP and Requests
+requests==2.32.4
+httpx==0.28.1
+
+# Configuration and Environment
+python-dotenv==1.1.0
+PyYAML==6.0.2
+click==8.2.1
+
+# Production Server
+gunicorn==23.0.0
+
+# Core utilities (required by above packages)
+tqdm==4.67.1
+joblib==1.5.1
+threadpoolctl==3.6.0
+packaging==25.0
+python-dateutil==2.9.0.post0
+pytz==2025.2
+tzdata==2025.2

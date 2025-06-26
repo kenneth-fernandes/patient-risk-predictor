@@ -1,5 +1,11 @@
 # ❤️ Patient Risk Predictor
 
+[![CI](https://github.com/kenneth-fernandes/patient-risk-predictor/actions/workflows/ci.yml/badge.svg)](https://github.com/kenneth-fernandes/patient-risk-predictor/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/kenneth-fernandes/patient-risk-predictor/branch/main/graph/badge.svg)](https://codecov.io/gh/kenneth-fernandes/patient-risk-predictor)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A machine learning application for predicting heart disease risk using the UCI Heart Disease dataset. Built with FastAPI, MLflow, and scikit-learn for production-ready deployment.
 
 ## ✨ Features
@@ -182,6 +188,52 @@ PORT=8000
 
 ## 🧪 Testing
 
+This project includes comprehensive test coverage with unit tests, integration tests, and CI/CD automation.
+
+### Running Tests Locally
+
+```bash
+# Install all dependencies (includes testing tools)
+pip install -r requirements.txt
+
+# Run all tests with coverage
+./scripts/test.sh
+
+# Run only unit tests
+./scripts/test.sh unit
+
+# Run only integration tests
+./scripts/test.sh integration
+
+# Run tests in parallel (faster)
+./scripts/test.sh parallel
+
+# Quick test run (no coverage)
+./scripts/test.sh quick
+
+# Generate coverage report
+./scripts/test.sh coverage
+```
+
+### Test Coverage
+
+- **Unit Tests**: Test individual components in isolation
+- **Integration Tests**: Test complete workflows end-to-end
+- **API Tests**: Test FastAPI endpoints and data validation
+- **Model Tests**: Test ML model training and prediction
+- **Config Tests**: Test configuration management
+
+### GitHub Actions CI/CD
+
+The project includes automated testing on every push and pull request:
+
+- ✅ **Code Quality**: Linting, formatting, type checking
+- ✅ **Security Scanning**: Safety and Bandit security checks
+- ✅ **Multi-Python Testing**: Tests on Python 3.9, 3.10, 3.11
+- ✅ **Docker Testing**: Container build and functionality tests
+- ✅ **Performance Testing**: Load testing with Locust
+- ✅ **Coverage Reporting**: Automated coverage tracking
+
 ### Test the API
 ```bash
 # Health check
@@ -223,6 +275,81 @@ curl -X POST http://localhost:8000/predict \
 | `slope` | Slope of peak exercise ST | 0-2 |
 | `ca` | Number of major vessels | 0-4 |
 | `thal` | Thalassemia | 0-3 |
+
+## 🚀 Development Scripts
+
+All development commands are organized in shell scripts for easy use:
+
+### **🎯 Quick Commands**
+```bash
+./scripts/commands.sh        # Show all available commands
+./scripts/test.sh            # Run all tests with coverage
+./scripts/quality.sh         # Run code quality checks
+```
+
+### **🛠️ Setup & Installation**
+```bash
+./scripts/setup.sh install      # Install production dependencies
+./scripts/setup.sh install-dev  # Install development dependencies  
+./scripts/setup.sh dev-setup    # Complete development environment
+```
+
+### **🧪 Testing Options**
+```bash
+./scripts/test.sh              # Run all tests with coverage
+./scripts/test.sh unit         # Run unit tests only
+./scripts/test.sh integration  # Run integration tests only
+./scripts/test.sh quick        # Run tests without coverage (faster)
+./scripts/test.sh parallel     # Run tests in parallel
+```
+
+### **🔍 Code Quality & Security**
+```bash
+./scripts/quality.sh           # Run all quality checks
+./scripts/quality.sh lint      # Run linting only
+./scripts/quality.sh format    # Format code with black
+./scripts/quality.sh security  # Run security scans
+```
+
+### **🐳 Docker Utilities**
+```bash
+./scripts/docker.sh build      # Build Docker image
+./scripts/docker.sh run        # Run container
+./scripts/docker.sh test       # Test container functionality
+./scripts/docker.sh clean      # Clean up Docker resources
+```
+
+### **🧹 Maintenance**
+```bash
+./scripts/clean.sh            # Clean temporary files
+./scripts/clean.sh coverage   # Clean coverage reports
+./scripts/clean.sh all        # Clean everything
+```
+
+## 📁 Project Structure
+
+```
+patient-risk-predictor/
+├── 📁 config/                 # Configuration files
+│   ├── 📁 testing/            # Test configurations (pytest.ini, .safety-project.ini)
+│   ├── docker.env             # Docker environment variables
+│   └── local.env              # Local development environment variables
+├── 📁 reports/                # Generated reports (gitignored)
+│   ├── 📁 coverage/           # Coverage reports (XML, HTML, .coverage)
+│   ├── 📁 security/           # Security scan results
+│   └── 📁 tests/              # Test result files (JUnit XML)
+├── 📁 scripts/                # Development utility scripts
+├── 📁 src/                    # Source code
+│   ├── 📁 api/                # FastAPI application
+│   ├── 📁 config/             # Configuration management
+│   └── 📁 model/              # ML model training
+├── 📁 tests/                  # Comprehensive test suite
+│   ├── 📁 unit/               # Unit tests
+│   └── 📁 integration/        # Integration tests
+├── 📄 main.py                 # Application entry point
+├── 📄 requirements.txt        # Python dependencies
+└── 📄 docker-compose.yml      # Multi-container orchestration
+```
 
 ## 🛠️ Troubleshooting
 
