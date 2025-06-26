@@ -30,9 +30,9 @@ requests==2.32.4
 httpx==0.28.1
 
 # Configuration and Environment
-python-dotenv==1.1.0
-PyYAML==6.0.2
-click==8.2.1
+python-dotenv==1.0.1
+PyYAML==6.0.1
+click==8.1.7
 
 # Production Server
 gunicorn==23.0.0
