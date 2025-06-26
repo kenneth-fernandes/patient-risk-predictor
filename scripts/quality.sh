@@ -193,7 +193,7 @@ run_security() {
     # Safety check
     if check_command safety; then
         print_info "Running safety scan for known vulnerabilities..."
-        safety scan --project-config config/testing/.safety-project.ini --continue-on-error
+        safety check --continue-on-error
         if [ $? -ne 0 ]; then
             print_warning "Safety scan found issues"
             overall_success=1
