@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch, MagicMock
 from fastapi.testclient import TestClient
 from fastapi import HTTPException
 
-from src.api.app import app, health_check, predict
+from src.api.app import app, health_check, predict, get_model
 
 
 @pytest.fixture
