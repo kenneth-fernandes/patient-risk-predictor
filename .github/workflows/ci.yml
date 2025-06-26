@@ -41,7 +41,16 @@ jobs:
     - name: Run tests with coverage
       run: |
         mkdir -p reports/{coverage,tests,security}
-        pytest -c config/testing/pytest.ini
+        echo "Python version and path:"
+        python --version
+        which python
+        echo "Python path contents:"
+        python -c "import sys; print('\n'.join(sys.path))"
+        echo "Checking if src directory exists:"
+        ls -la src/
+        echo "Running pytest with coverage..."
+        PYTHONPATH=. python -m pytest -c config/testing/pytest.ini --verbose --tb=long
+        echo "Test run completed"
 
     - name: 🔍 Debug - Confirm coverage.xml exists
       run: |
