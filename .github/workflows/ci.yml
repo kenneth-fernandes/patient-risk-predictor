@@ -48,7 +48,7 @@ jobs:
         fail_ci_if_error: false
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results-${{ matrix.python-version }}
@@ -224,7 +224,7 @@ jobs:
         locust -f locustfile.py --headless -u 10 -r 2 -t 30s --host http://localhost:8000 --html performance-report.html
     
     - name: Upload performance results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: performance-report
