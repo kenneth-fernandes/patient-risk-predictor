@@ -5,13 +5,13 @@ This module provides the FastAPI application for patient risk prediction,
 including data schemas, model utilities, and prediction endpoints.
 """
 
-from .app import app, health_check, predict, model
-from .schemas import PatientData
+from .app import app, health_check, model, predict
 from .ml_utils import get_latest_model_path
+from .schemas import PatientData
 
 __all__ = [
     "app",
-    "health_check", 
+    "health_check",
     "predict",
     "model",
     "PatientData",
