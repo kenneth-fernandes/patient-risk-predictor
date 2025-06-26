@@ -43,17 +43,15 @@ class TestAPIIntegration:
     
     def test_predict_endpoint_integration_with_mock_model(self, integration_client, sample_patient_data):
         """Test prediction endpoint with mocked model."""
-        with patch('src.api.app.get_model') as mock_get_model:
-            mock_model = Mock()
+        with patch('src.api.app.model') as mock_model:
             mock_model.predict.return_value = np.array([1])
-            mock_get_model.return_value = mock_model
-            
-            response = integration_client.post("/predict", json=sample_patient_data)
-            
-            assert response.status_code == 200
-            result = response.json()
-            assert "risk" in result
-            assert result["risk"] in [0, 1]
+            with patch('src.api.app.get_model', return_value=mock_model):
+                response = integration_client.post("/predict", json=sample_patient_data)
+                
+                assert response.status_code == 200
+                result = response.json()
+                assert "risk" in result
+                assert result["risk"] in [0, 1]
     
     def test_openapi_schema_integration(self, integration_client):
         """Test that OpenAPI schema is properly generated."""
@@ -83,25 +81,23 @@ class TestAPIIntegration:
     
     def test_multiple_predictions_integration(self, integration_client, sample_patient_data):
         """Test multiple consecutive predictions."""
-        with patch('src.api.app.get_model') as mock_get_model:
-            mock_model = Mock()
-            mock_get_model.return_value = mock_model
-            
-            # Test multiple predictions with different outcomes
-            test_cases = [
-                (np.array([0]), 0),
-                (np.array([1]), 1),
-                (np.array([0]), 0),
-                (np.array([1]), 1),
-            ]
-            
-            for model_output, expected_risk in test_cases:
-                mock_model.predict.return_value = model_output
+        with patch('src.api.app.model') as mock_model:
+            with patch('src.api.app.get_model', return_value=mock_model):
+                # Test multiple predictions with different outcomes
+                test_cases = [
+                    (np.array([0]), 0),
+                    (np.array([1]), 1),
+                    (np.array([0]), 0),
+                    (np.array([1]), 1),
+                ]
                 
-                response = integration_client.post("/predict", json=sample_patient_data)
-                
-                assert response.status_code == 200
-                assert response.json()["risk"] == expected_risk
+                for model_output, expected_risk in test_cases:
+                    mock_model.predict.return_value = model_output
+                    
+                    response = integration_client.post("/predict", json=sample_patient_data)
+                    
+                    assert response.status_code == 200
+                    assert response.json()["risk"] == expected_risk
     
     def test_error_handling_integration(self, integration_client):
         """Test error handling across the API."""
@@ -205,23 +201,21 @@ class TestDataFlowIntegration:
             "thal": 1
         }
         
-        with patch('src.api.app.get_model') as mock_get_model:
-            mock_model = Mock()
+        with patch('src.api.app.model') as mock_model:
             mock_model.predict.return_value = np.array([1])
-            mock_get_model.return_value = mock_model
-            
-            response = integration_client.post("/predict", json=patient_input)
-            
-            assert response.status_code == 200
-            
-            # Verify model was called with DataFrame
-            mock_model.predict.assert_called_once()
-            call_args = mock_model.predict.call_args[0][0]
-            assert isinstance(call_args, pd.DataFrame)
-            
-            # Verify data types are correct (should be float)
-            for column in call_args.columns:
-                assert call_args[column].dtype in ['float64', 'int64']
+            with patch('src.api.app.get_model', return_value=mock_model):
+                response = integration_client.post("/predict", json=patient_input)
+                
+                assert response.status_code == 200
+                
+                # Verify model was called with DataFrame
+                mock_model.predict.assert_called_once()
+                call_args = mock_model.predict.call_args[0][0]
+                assert isinstance(call_args, pd.DataFrame)
+                
+                # Verify data types are correct (should be float)
+                for column in call_args.columns:
+                    assert call_args[column].dtype in ['float64', 'int64']
     
     def test_end_to_end_realistic_scenario(self, integration_client):
         """Test end-to-end scenario with realistic data."""
@@ -258,21 +252,19 @@ class TestDataFlowIntegration:
             "thal": 2.0
         }
         
-        with patch('src.api.app.get_model') as mock_get_model:
-            mock_model = Mock()
-            mock_get_model.return_value = mock_model
-            
-            # Test high risk patient
-            mock_model.predict.return_value = np.array([1])
-            response = integration_client.post("/predict", json=high_risk_patient)
-            assert response.status_code == 200
-            assert response.json()["risk"] == 1
-            
-            # Test low risk patient
-            mock_model.predict.return_value = np.array([0])
-            response = integration_client.post("/predict", json=low_risk_patient)
-            assert response.status_code == 200
-            assert response.json()["risk"] == 0
+        with patch('src.api.app.model') as mock_model:
+            with patch('src.api.app.get_model', return_value=mock_model):
+                # Test high risk patient
+                mock_model.predict.return_value = np.array([1])
+                response = integration_client.post("/predict", json=high_risk_patient)
+                assert response.status_code == 200
+                assert response.json()["risk"] == 1
+                
+                # Test low risk patient
+                mock_model.predict.return_value = np.array([0])
+                response = integration_client.post("/predict", json=low_risk_patient)
+                assert response.status_code == 200
+                assert response.json()["risk"] == 0
 
 
 class TestErrorRecoveryIntegration:
@@ -280,60 +272,56 @@ class TestErrorRecoveryIntegration:
     
     def test_model_failure_recovery(self, integration_client, sample_patient_data):
         """Test that API handles model failures gracefully."""
-        with patch('src.api.app.get_model') as mock_get_model:
-            mock_model = Mock()
-            mock_get_model.return_value = mock_model
-            
-            # Simulate different types of model failures
-            failure_scenarios = [
-                ValueError("Invalid input shape"),
-                RuntimeError("Model prediction failed"),
-                Exception("Unexpected error")
-            ]
-            
-            for error in failure_scenarios:
-                mock_model.predict.side_effect = error
+        with patch('src.api.app.model') as mock_model:
+            with patch('src.api.app.get_model', return_value=mock_model):
+                # Simulate different types of model failures
+                failure_scenarios = [
+                    ValueError("Invalid input shape"),
+                    RuntimeError("Model prediction failed"),
+                    Exception("Unexpected error")
+                ]
                 
-                response = integration_client.post("/predict", json=sample_patient_data)
-                
-                # Should return 500 with error details
-                assert response.status_code == 500
-                assert "Prediction failed" in response.json()["detail"]
+                for error in failure_scenarios:
+                    mock_model.predict.side_effect = error
+                    
+                    response = integration_client.post("/predict", json=sample_patient_data)
+                    
+                    # Should return 500 with error details
+                    assert response.status_code == 500
+                    assert "Prediction failed" in response.json()["detail"]
     
     def test_concurrent_requests_integration(self, integration_client, sample_patient_data):
         """Test handling of concurrent requests."""
         import concurrent.futures
         import threading
         
-        with patch('src.api.app.get_model') as mock_get_model:
-            mock_model = Mock()
+        with patch('src.api.app.model') as mock_model:
             mock_model.predict.return_value = np.array([1])
-            mock_get_model.return_value = mock_model
-            
-            # Use a lock to ensure model is called for each request
-            call_count = 0
-            lock = threading.Lock()
-            
-            def mock_predict(*args, **kwargs):
-                nonlocal call_count
-                with lock:
-                    call_count += 1
-                return np.array([1])
-            
-            mock_model.predict.side_effect = mock_predict
-            
-            # Make multiple concurrent requests
-            def make_request():
-                return integration_client.post("/predict", json=sample_patient_data)
-            
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                futures = [executor.submit(make_request) for _ in range(10)]
-                responses = [future.result() for future in futures]
-            
-            # All requests should succeed
-            for response in responses:
-                assert response.status_code == 200
-                assert response.json()["risk"] == 1
-            
-            # Model should have been called for each request
-            assert call_count == 10
+            with patch('src.api.app.get_model', return_value=mock_model):
+                # Use a lock to ensure model is called for each request
+                call_count = 0
+                lock = threading.Lock()
+                
+                def mock_predict(*args, **kwargs):
+                    nonlocal call_count
+                    with lock:
+                        call_count += 1
+                    return np.array([1])
+                
+                mock_model.predict.side_effect = mock_predict
+                
+                # Make multiple concurrent requests
+                def make_request():
+                    return integration_client.post("/predict", json=sample_patient_data)
+                
+                with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                    futures = [executor.submit(make_request) for _ in range(10)]
+                    responses = [future.result() for future in futures]
+                
+                # All requests should succeed
+                for response in responses:
+                    assert response.status_code == 200
+                    assert response.json()["risk"] == 1
+                
+                # Model should have been called for each request
+                assert call_count == 10
