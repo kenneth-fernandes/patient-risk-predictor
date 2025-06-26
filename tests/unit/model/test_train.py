@@ -1,6 +1,7 @@
 """Tests for model training module."""
 
 from unittest.mock import Mock, patch
+
 import pandas as pd
 import pytest
 from sklearn.ensemble import RandomForestClassifier
