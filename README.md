@@ -215,6 +215,27 @@ pip install -r requirements.txt
 ./scripts/test.sh coverage
 ```
 
+### 🐍 Dependency Compatibility Testing
+
+**Test dependencies before committing changes:**
+
+```bash
+# Quick dependency test (current Python version)
+./scripts/test_deps.sh
+
+# Multi-version testing (if multiple Python versions installed)
+./scripts/test_deps_multi.sh
+
+# Get help installing multiple Python versions
+./scripts/install_python_versions.sh
+```
+
+**Benefits:**
+- ✅ **Catch conflicts early**: Find dependency issues before CI/CD
+- ✅ **Multi-Python support**: Test compatibility across Python 3.9, 3.10, 3.11
+- ✅ **No installations**: Uses `--dry-run` flag to test without installing
+- ✅ **Fast feedback**: Get results in seconds instead of waiting for CI
+
 ### Test Coverage
 
 - **Unit Tests**: Test individual components in isolation
@@ -280,12 +301,37 @@ curl -X POST http://localhost:8000/predict \
 
 All development commands are organized in shell scripts for easy use:
 
-### **🎯 Quick Commands**
+### **⚡ Quick Reference - Most Common Commands**
+
+**🧪 Before Committing:**
+```bash
+./scripts/test_deps.sh       # Test dependencies (30 seconds)
+./scripts/test.sh quick      # Quick tests (2-3 minutes)
+./scripts/quality.sh         # Code quality checks (1 minute)
+```
+
+**🛠️ Development:**
 ```bash
 ./scripts/commands.sh        # Show all available commands
-./scripts/test.sh            # Run all tests with coverage
-./scripts/quality.sh         # Run code quality checks
+./scripts/run_local.sh       # Start the application
+./scripts/setup.sh dev-setup # Setup development environment
 ```
+
+**⚡ Quick Start:**
+```bash
+# 1. Setup
+pip install -r requirements.txt
+./scripts/setup.sh dev-setup
+
+# 2. Test everything works
+./scripts/test_deps.sh
+./scripts/test.sh quick
+
+# 3. Run the application
+./scripts/run_local.sh
+```
+
+### **🎯 All Commands**
 
 ### **🛠️ Setup & Installation**
 ```bash
@@ -301,6 +347,28 @@ All development commands are organized in shell scripts for easy use:
 ./scripts/test.sh integration  # Run integration tests only
 ./scripts/test.sh quick        # Run tests without coverage (faster)
 ./scripts/test.sh parallel     # Run tests in parallel
+```
+
+### **🐍 Dependency Testing**
+```bash
+./scripts/test_deps.sh         # Test dependency compatibility (current Python)
+./scripts/test_deps_multi.sh   # Test with multiple Python versions (if available)
+./scripts/install_python_versions.sh  # Get instructions for installing multiple Python versions
+```
+
+**Why test dependencies?**
+- ✅ Catch version conflicts before committing
+- ✅ Ensure compatibility across Python 3.9, 3.10, 3.11
+- ✅ Avoid CI/CD failures from dependency issues
+- ✅ Test locally without installing packages
+
+**Example workflow:**
+```bash
+# Before committing dependency changes
+./scripts/test_deps.sh          # Quick check with current Python
+
+# For comprehensive testing (optional)
+./scripts/test_deps_multi.sh    # Test with multiple Python versions
 ```
 
 ### **🔍 Code Quality & Security**
@@ -354,6 +422,25 @@ patient-risk-predictor/
 ## 🛠️ Troubleshooting
 
 ### Common Issues
+
+**🚨 Emergency Commands:**
+```bash
+./scripts/clean.sh all       # Clean everything
+./scripts/docker.sh down     # Stop Docker services
+docker system prune -f       # Clean Docker completely
+```
+
+**Dependency conflicts:**
+```bash
+# Test dependencies before making changes
+./scripts/test_deps.sh
+
+# If conflicts found, check specific errors
+pip install -r requirements.txt --dry-run
+
+# Install specific Python versions for testing
+./scripts/install_python_versions.sh
+```
 
 **Port conflicts:**
 ```bash
