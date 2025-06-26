@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 import pandas as pd
 import numpy as np
 
-from src.api.app import app
+from src.api.app import app, get_model
 
 
 @pytest.fixture
