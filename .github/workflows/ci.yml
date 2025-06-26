@@ -45,20 +45,32 @@ jobs:
 
     - name: 🔍 Debug - Confirm coverage.xml exists
       run: |
+        echo "Current working directory:"
+        pwd
+        echo "Listing all reports:"
+        find reports -type f -name "*.xml" -ls 2>/dev/null || echo "No XML files found"
         echo "Listing coverage directory:"
-        ls -lah reports/coverage/
+        ls -lah reports/coverage/ || echo "Coverage directory doesn't exist"
+        echo "Coverage.xml file details:"
+        ls -lah reports/coverage/coverage.xml || echo "coverage.xml not found"
         echo "Preview of coverage.xml:"
-        head -n 10 reports/coverage/coverage.xml || echo "coverage.xml not found"
+        head -n 10 reports/coverage/coverage.xml || echo "coverage.xml cannot be read"
 
     - name: Upload coverage to Codecov (only Python 3.11)
       if: matrix.python-version == '3.11'
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./reports/coverage/coverage.xml
-        directory: ./reports/coverage
-        flags: unittests
-        name: codecov-umbrella
+        verbose: true
+        fail_ci_if_error: false
+        
+    # Fallback upload without token (for public repos)
+    - name: Upload coverage to Codecov (fallback, no token)
+      if: matrix.python-version == '3.11' && failure()
+      uses: codecov/codecov-action@v5
+      with:
+        files: ./reports/coverage/coverage.xml
         verbose: true
         fail_ci_if_error: false
 
