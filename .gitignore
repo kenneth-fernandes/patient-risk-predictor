@@ -194,6 +194,7 @@ cython_debug/
 .cursorindexingignore
 
 mlruns/
+mlflow.db
 __pycache__/
 *.pyc
 .venv/
