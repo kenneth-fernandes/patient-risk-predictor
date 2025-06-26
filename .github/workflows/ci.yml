@@ -40,9 +40,9 @@ jobs:
       run: |
         mkdir -p reports/{coverage,tests,security}
         python -m pytest -c config/testing/pytest.ini
-    
+
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./reports/coverage/coverage.xml
