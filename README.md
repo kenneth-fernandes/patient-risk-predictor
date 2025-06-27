@@ -15,9 +15,11 @@ A machine learning application for predicting heart disease risk using the UCI H
 - 📊 **MLflow Integration**: Experiment tracking and model versioning
 - 🐳 **Docker Support**: Full containerization with Docker Compose
 - 🔧 **Local Development**: Comprehensive local setup script
-- 🏥 **Health Monitoring**: Built-in health checks and monitoring
+- 🏥 **Health Monitoring**: Enhanced health checks with detailed status reporting
 - 📈 **Model Metrics**: Accuracy tracking and performance monitoring
 - 📋 **Comprehensive Logging**: Structured logging with correlation tracking and error monitoring
+- 🎯 **Enhanced API Responses**: Detailed responses with risk levels and status information
+- 🧪 **High Test Coverage**: 98% test coverage with comprehensive test suite
 
 ## 📋 Prerequisites
 
@@ -129,7 +131,21 @@ curl -X POST http://localhost:8000/predict \
 **Response:**
 ```json
 {
-  "risk": 0
+  "risk": 0,
+  "risk_level": "low"
+}
+```
+
+**Health Check Response:**
+```bash
+curl http://localhost:8000/
+```
+
+```json
+{
+  "message": "Model is up and running",
+  "status": "healthy",
+  "model_loaded": true
 }
 ```
 
@@ -199,6 +215,9 @@ The application includes a comprehensive logging system for production-ready err
 - **Error Tracking**: Detailed exception information with recovery suggestions
 - **Log Rotation**: Automatic file rotation and size management (local environment)
 - **Environment-Aware**: Different log formats for development vs production
+- **Request Middleware**: Automatic request/response logging with timing
+- **Health Check Filtering**: Reduced logging noise from health check endpoints
+- **Correlation ID Headers**: Automatic generation and propagation of request IDs
 
 ### 🔧 Logging Configuration
 
@@ -452,11 +471,14 @@ pip install -r requirements.txt
 
 ### Test Coverage
 
+- **98% Code Coverage**: Comprehensive test coverage across all modules
 - **Unit Tests**: Test individual components in isolation
 - **Integration Tests**: Test complete workflows end-to-end
 - **API Tests**: Test FastAPI endpoints and data validation
 - **Model Tests**: Test ML model training and prediction
 - **Config Tests**: Test configuration management
+- **Logging Tests**: Test structured logging and middleware functionality
+- **Utility Tests**: Test logging configuration and request middleware
 
 ### GitHub Actions CI/CD
 
@@ -656,9 +678,14 @@ patient-risk-predictor/
 ├── 📁 src/                    # Source code
 │   ├── 📁 api/                # FastAPI application
 │   ├── 📁 config/             # Configuration management
-│   └── 📁 model/              # ML model training
-├── 📁 tests/                  # Comprehensive test suite
+│   ├── 📁 model/              # ML model training
+│   └── 📁 utils/              # Utility modules (logging, middleware)
+├── 📁 tests/                  # Comprehensive test suite (98% coverage)
 │   ├── 📁 unit/               # Unit tests
+│   │   ├── 📁 api/            # API component tests
+│   │   ├── 📁 config/         # Configuration tests
+│   │   ├── 📁 model/          # Model training tests
+│   │   └── 📁 utils/          # Utility tests (logging, middleware)
 │   └── 📁 integration/        # Integration tests
 ├── 📄 main.py                 # Application entry point
 ├── 📄 requirements.txt        # Python dependencies
