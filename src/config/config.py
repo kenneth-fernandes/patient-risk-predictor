@@ -55,9 +55,8 @@ class Config:
         self._load_env_files()
         self._mlflow_uri = None
 
-        # Debug info
-        print(f"Environment detection: {'docker' if self.is_docker else 'local'}")
-        print(f"Current working directory: {os.getcwd()}")
+        # Note: We can't use logger here as logging isn't set up yet
+        # Debug info will be logged later in the logging setup
 
     def _load_env_files(self):
         """Load environment variables from appropriate .env files."""
@@ -67,12 +66,12 @@ class Config:
             # Load Docker environment file
             docker_env = project_root / "config" / "docker.env"
             load_env_file(docker_env)
-            print(f"Loaded Docker environment from: {docker_env}")
+            self._env_file_loaded = str(docker_env)
         else:
             # Load local environment file
             local_env = project_root / "config" / "local.env"
             load_env_file(local_env)
-            print(f"Loaded local environment from: {local_env}")
+            self._env_file_loaded = str(local_env)
 
     @property
     def mlflow_tracking_uri(self):
@@ -89,7 +88,7 @@ class Config:
                 current_dir = os.getcwd()
                 self._mlflow_uri = f"file://{current_dir}/mlruns"
 
-            print(f"MLflow URI resolved to: {self._mlflow_uri}")
+            # Note: We can't use logger here as logging setup depends on config
 
         return self._mlflow_uri
 
@@ -111,7 +110,7 @@ class Config:
     @property
     def log_level(self):
         """Log level for the application."""
-        return os.getenv("LOG_LEVEL", "info")
+        return os.getenv("LOG_LEVEL", "INFO").upper()
 
     @property
     def workers(self):
@@ -127,6 +126,21 @@ class Config:
     def model_name(self):
         """Model artifact name."""
         return "random_forest_model"
+
+    def get_debug_info(self):
+        """Get configuration debug information for logging."""
+        return {
+            "environment_detected": "docker" if self.is_docker else "local",
+            "current_working_directory": os.getcwd(),
+            "env_file_loaded": getattr(self, "_env_file_loaded", "none"),
+            "mlflow_uri": self.mlflow_tracking_uri,
+            "api_host": self.api_host,
+            "api_port": self.api_port,
+            "log_level": self.log_level,
+            "workers": self.workers,
+            "experiment_name": self.experiment_name,
+            "model_name": self.model_name,
+        }
 
 
 # Global config instance

@@ -203,13 +203,13 @@ class TestConfig:
         with patch.dict(os.environ, {}, clear=True):
             with patch("src.config.config.load_env_file"):
                 config = Config()
-                assert config.log_level == "info"
+                assert config.log_level == "INFO"
 
     def test_log_level_from_env(self):
         """Test log level from environment variable."""
         with patch.dict(os.environ, {"LOG_LEVEL": "debug"}):
             config = Config()
-            assert config.log_level == "debug"
+            assert config.log_level == "DEBUG"
 
     def test_workers_docker(self, mock_docker_env):
         """Test workers count in Docker."""
