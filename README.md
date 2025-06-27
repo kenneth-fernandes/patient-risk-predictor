@@ -674,6 +674,24 @@ This section documents the key challenges encountered during development and the
 - **Workflow examples**: Step-by-step examples for common development tasks
 - **Troubleshooting guides**: Solutions for common issues and debugging procedures
 
+### Codecov Integration Challenges
+
+**Challenge**: Setting up reliable code coverage reporting with Codecov in the CI/CD pipeline.
+
+**Codecov Issues Encountered**:
+- Coverage XML files not being generated despite pytest-cov being installed
+- GitHub Actions artifact upload failures due to incorrect path formatting
+- Codecov action parameter mismatches between v4 and v5 (`file` vs `files`)
+- Python path resolution issues preventing pytest from finding source code in CI
+- Tests running but coverage not being calculated due to missing PYTHONPATH
+
+**Codecov Solutions**:
+- **Explicit PYTHONPATH configuration**: Added `PYTHONPATH=.` to ensure pytest can find source modules
+- **Direct coverage parameters**: Used explicit `--cov=src --cov-report=xml` flags to force coverage generation
+- **Correct action parameters**: Updated to codecov-action@v5 with proper `files` parameter
+- **Simplified artifact uploads**: Changed upload paths to include entire reports directory
+- **Comprehensive debugging**: Added detailed logging to identify root causes before cleanup
+
 ### Lessons Learned
 
 1. **Start with fewer Python versions**: Supporting a wide range increases complexity exponentially
