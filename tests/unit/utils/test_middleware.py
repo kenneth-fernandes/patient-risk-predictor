@@ -1,6 +1,5 @@
 """Tests for middleware module."""
 
-import time
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -33,14 +32,14 @@ class TestLoggingMiddleware:
         """Test LoggingMiddleware with successful request."""
         client = TestClient(app_with_logging_middleware)
         response = client.get("/test")
-        
+
         assert response.status_code == 200
         assert response.json() == {"message": "test"}
 
     def test_logging_middleware_error_request(self, app_with_logging_middleware):
         """Test LoggingMiddleware with error request."""
         client = TestClient(app_with_logging_middleware)
-        
+
         with pytest.raises(Exception):
             client.get("/error")
 
@@ -48,7 +47,7 @@ class TestLoggingMiddleware:
         """Test that LoggingMiddleware generates correlation IDs."""
         client = TestClient(app_with_logging_middleware)
         response = client.get("/test")
-        
+
         # Check that correlation ID header is present
         assert "X-Correlation-ID" in response.headers
 
@@ -65,7 +64,7 @@ class TestLoggingMiddleware:
 
         client = TestClient(app)
         response = client.get("/slow")
-        
+
         assert response.status_code == 200
 
 
@@ -95,14 +94,14 @@ class TestHealthCheckLoggingMiddleware:
     def test_health_middleware_default_paths(self, app_with_health_middleware):
         """Test HealthCheckLoggingMiddleware with default health check paths."""
         client = TestClient(app_with_health_middleware)
-        
+
         # Health check endpoints should work
         response = client.get("/")
         assert response.status_code == 200
-        
+
         response = client.get("/health")
         assert response.status_code == 200
-        
+
         # Regular API endpoints should work
         response = client.get("/api/data")
         assert response.status_code == 200
@@ -111,8 +110,7 @@ class TestHealthCheckLoggingMiddleware:
         """Test HealthCheckLoggingMiddleware with custom health check paths."""
         app = FastAPI()
         app.add_middleware(
-            HealthCheckLoggingMiddleware, 
-            health_check_paths=["/custom-health", "/status"]
+            HealthCheckLoggingMiddleware, health_check_paths=["/custom-health", "/status"]
         )
 
         @app.get("/custom-health")
@@ -128,14 +126,14 @@ class TestHealthCheckLoggingMiddleware:
             return {"data": "test"}
 
         client = TestClient(app)
-        
+
         # Custom health check endpoints should work
         response = client.get("/custom-health")
         assert response.status_code == 200
-        
+
         response = client.get("/status")
         assert response.status_code == 200
-        
+
         # Regular API endpoints should work
         response = client.get("/api/data")
         assert response.status_code == 200
@@ -143,12 +141,10 @@ class TestHealthCheckLoggingMiddleware:
     def test_health_middleware_path_filtering(self):
         """Test that HealthCheckLoggingMiddleware filters health check paths."""
         app = FastAPI()
-        
+
         # Initialize with specific health check paths
-        middleware = HealthCheckLoggingMiddleware(
-            app, health_check_paths=["/health", "/ping"]
-        )
-        
+        middleware = HealthCheckLoggingMiddleware(app, health_check_paths=["/health", "/ping"])
+
         # Test that health check paths are identified correctly
         assert "/health" in middleware.health_check_paths
         assert "/ping" in middleware.health_check_paths
@@ -159,7 +155,7 @@ class TestHealthCheckLoggingMiddleware:
         """Test HealthCheckLoggingMiddleware with None paths parameter."""
         app = FastAPI()
         middleware = HealthCheckLoggingMiddleware(app, health_check_paths=None)
-        
+
         # Should use default paths
         assert "/" in middleware.health_check_paths
         assert "/health" in middleware.health_check_paths
@@ -168,18 +164,18 @@ class TestHealthCheckLoggingMiddleware:
         """Test middleware dispatch method with health check path."""
         app = FastAPI()
         middleware = HealthCheckLoggingMiddleware(app)
-        
+
         # Mock request for health check path
         request = Mock(spec=Request)
         request.url.path = "/"
         request.method = "GET"
-        
+
         # Mock call_next function
         async def mock_call_next(req):
             response = Mock(spec=Response)
             response.status_code = 200
             return response
-        
+
         response = await middleware.dispatch(request, mock_call_next)
         assert response.status_code == 200
 
@@ -187,18 +183,18 @@ class TestHealthCheckLoggingMiddleware:
         """Test middleware dispatch method with regular API path."""
         app = FastAPI()
         middleware = HealthCheckLoggingMiddleware(app)
-        
+
         # Mock request for regular API path
         request = Mock(spec=Request)
         request.url.path = "/api/users"
         request.method = "GET"
-        
+
         # Mock call_next function
         async def mock_call_next(req):
             response = Mock(spec=Response)
             response.status_code = 200
             return response
-        
+
         response = await middleware.dispatch(request, mock_call_next)
         assert response.status_code == 200
 
@@ -221,12 +217,12 @@ class TestMiddlewareIntegration:
             return {"data": "test"}
 
         client = TestClient(app)
-        
+
         # Health check should work
         response = client.get("/")
         assert response.status_code == 200
         assert "X-Correlation-ID" in response.headers
-        
+
         # API endpoint should work
         response = client.get("/api/test")
         assert response.status_code == 200
@@ -243,7 +239,7 @@ class TestMiddlewareIntegration:
             raise ValueError("Test error")
 
         client = TestClient(app)
-        
+
         # Should handle errors gracefully
         with pytest.raises(ValueError):
             client.get("/error")
@@ -252,7 +248,7 @@ class TestMiddlewareIntegration:
         """Test that middleware doesn't significantly impact performance."""
         app_without_middleware = FastAPI()
         app_with_middleware = FastAPI()
-        
+
         app_with_middleware.add_middleware(LoggingMiddleware)
         app_with_middleware.add_middleware(HealthCheckLoggingMiddleware)
 
@@ -263,11 +259,11 @@ class TestMiddlewareIntegration:
 
         client_without = TestClient(app_without_middleware)
         client_with = TestClient(app_with_middleware)
-        
+
         # Both should complete successfully
         response_without = client_without.get("/test")
         response_with = client_with.get("/test")
-        
+
         assert response_without.status_code == 200
         assert response_with.status_code == 200
         assert response_without.json() == response_with.json()
