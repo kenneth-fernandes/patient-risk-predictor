@@ -35,7 +35,11 @@ class TestHealthCheck:
                 response = client.get("/")
 
                 assert response.status_code == 200
-                assert response.json() == {"message": "Model is up and running"}
+                assert response.json() == {
+                    "message": "Model is up and running",
+                    "status": "healthy",
+                    "model_loaded": True,
+                }
 
     def test_health_check_without_model(self, client):
         """Test health check when model is not loaded."""
@@ -44,19 +48,31 @@ class TestHealthCheck:
                 response = client.get("/")
 
                 assert response.status_code == 200
-                assert response.json() == {"message": "Model not loaded"}
+                assert response.json() == {
+                    "message": "Model not loaded",
+                    "status": "unhealthy",
+                    "model_loaded": False,
+                }
 
     def test_health_check_function_directly(self):
         """Test health_check function directly."""
         with patch("src.api.app.model") as mock_model:
             with patch("src.api.app.get_model", return_value=mock_model):
                 result = health_check()
-                assert result == {"message": "Model is up and running"}
+                assert result == {
+                    "message": "Model is up and running",
+                    "status": "healthy",
+                    "model_loaded": True,
+                }
 
         with patch("src.api.app.model", None):
             with patch("src.api.app.get_model", return_value=None):
                 result = health_check()
-                assert result == {"message": "Model not loaded"}
+                assert result == {
+                    "message": "Model not loaded",
+                    "status": "unhealthy",
+                    "model_loaded": False,
+                }
 
 
 class TestPredictEndpoint:
@@ -70,7 +86,7 @@ class TestPredictEndpoint:
                 response = client.post("/predict", json=sample_patient_data)
 
                 assert response.status_code == 200
-                assert response.json() == {"risk": 1}
+                assert response.json() == {"risk": 1, "risk_level": "high"}
 
                 # Verify model was called with correct data
                 mock_model.predict.assert_called_once()
@@ -152,20 +168,20 @@ class TestPredictEndpoint:
     def test_predict_different_risk_values(self, client, sample_patient_data):
         """Test prediction with different risk values."""
         test_cases = [
-            (np.array([0]), 0),
-            (np.array([1]), 1),
-            (np.array([0.0]), 0),
-            (np.array([1.0]), 1),
+            (np.array([0]), 0, "low"),
+            (np.array([1]), 1, "high"),
+            (np.array([0.0]), 0, "low"),
+            (np.array([1.0]), 1, "high"),
         ]
 
-        for model_output, expected_risk in test_cases:
+        for model_output, expected_risk, expected_level in test_cases:
             with patch("src.api.app.model") as mock_model:
                 mock_model.predict.return_value = model_output
                 with patch("src.api.app.get_model", return_value=mock_model):
                     response = client.post("/predict", json=sample_patient_data)
 
                     assert response.status_code == 200
-                    assert response.json() == {"risk": expected_risk}
+                    assert response.json() == {"risk": expected_risk, "risk_level": expected_level}
 
     def test_predict_function_directly(self, sample_patient_data):
         """Test predict function directly."""
@@ -178,7 +194,7 @@ class TestPredictEndpoint:
             with patch("src.api.app.get_model", return_value=mock_model):
                 result = predict(patient_data)
 
-                assert result == {"risk": 1}
+                assert result == {"risk": 1, "risk_level": "high"}
                 mock_model.predict.assert_called_once()
 
     def test_predict_function_no_model(self, sample_patient_data):
@@ -260,6 +276,49 @@ class TestModelLoading:
                 assert "Model path not found" in str(e)
                 mock_get_path.assert_called_once()
 
+    def test_load_model_function_success(self):
+        """Test load_model function success path."""
+        from src.api.app import load_model
+
+        with patch("src.api.app.get_latest_model_path") as mock_get_path:
+            with patch("src.api.app.mlflow.sklearn.load_model") as mock_load_model:
+                mock_get_path.return_value = "runs:/test_run/model"
+                mock_model = Mock()
+                mock_load_model.return_value = mock_model
+
+                result = load_model()
+
+                assert result == mock_model
+                mock_get_path.assert_called_once()
+                mock_load_model.assert_called_once_with("runs:/test_run/model")
+
+    def test_load_model_function_failure(self):
+        """Test load_model function failure path."""
+        from src.api.app import load_model
+
+        with patch("src.api.app.get_latest_model_path") as mock_get_path:
+            mock_get_path.side_effect = Exception("Model loading failed")
+
+            result = load_model()
+
+            assert result is None
+            mock_get_path.assert_called_once()
+
+    def test_get_model_function(self):
+        """Test get_model function."""
+        from src.api.app import get_model
+
+        # Test when no model is loaded
+        with patch("src.api.app.model", None):
+            result = get_model()
+            assert result is None
+
+        # Test when model is loaded
+        mock_model = Mock()
+        with patch("src.api.app.model", mock_model):
+            result = get_model()
+            assert result == mock_model
+
 
 class TestEndToEndWorkflow:
     """End-to-end tests for API workflow."""
@@ -293,7 +352,9 @@ class TestEndToEndWorkflow:
                 assert response.status_code == 200
                 result = response.json()
                 assert "risk" in result
+                assert "risk_level" in result
                 assert result["risk"] in [0, 1]
+                assert result["risk_level"] in ["low", "high"]
 
                 # Verify model was called correctly
                 mock_model.predict.assert_called_once()

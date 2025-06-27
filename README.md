@@ -15,8 +15,11 @@ A machine learning application for predicting heart disease risk using the UCI H
 - 📊 **MLflow Integration**: Experiment tracking and model versioning
 - 🐳 **Docker Support**: Full containerization with Docker Compose
 - 🔧 **Local Development**: Comprehensive local setup script
-- 🏥 **Health Monitoring**: Built-in health checks and monitoring
+- 🏥 **Health Monitoring**: Enhanced health checks with detailed status reporting
 - 📈 **Model Metrics**: Accuracy tracking and performance monitoring
+- 📋 **Comprehensive Logging**: Structured logging with correlation tracking and error monitoring
+- 🎯 **Enhanced API Responses**: Detailed responses with risk levels and status information
+- 🧪 **High Test Coverage**: 98% test coverage with comprehensive test suite
 
 ## 📋 Prerequisites
 
@@ -128,7 +131,21 @@ curl -X POST http://localhost:8000/predict \
 **Response:**
 ```json
 {
-  "risk": 0
+  "risk": 0,
+  "risk_level": "low"
+}
+```
+
+**Health Check Response:**
+```bash
+curl http://localhost:8000/
+```
+
+```json
+{
+  "message": "Model is up and running",
+  "status": "healthy",
+  "model_loaded": true
 }
 ```
 
@@ -185,6 +202,181 @@ MLFLOW_TRACKING_URI=http://mlflow:5000
 HOST=0.0.0.0
 PORT=8000
 ```
+
+## 📋 Logging & Monitoring
+
+The application includes a comprehensive logging system for production-ready error tracking, debugging, and monitoring.
+
+### 🏗️ Logging Features
+
+- **Structured JSON Logging**: Production-ready logs with consistent schema
+- **Request Correlation**: Track requests across components with correlation IDs
+- **Performance Monitoring**: Automatic timing and resource usage tracking
+- **Error Tracking**: Detailed exception information with recovery suggestions
+- **Log Rotation**: Automatic file rotation and size management (local environment)
+- **Environment-Aware**: Different log formats for development vs production
+- **Request Middleware**: Automatic request/response logging with timing
+- **Health Check Filtering**: Reduced logging noise from health check endpoints
+- **Correlation ID Headers**: Automatic generation and propagation of request IDs
+
+### 🔧 Logging Configuration
+
+The logging system is configured via environment variables and YAML configuration:
+
+**Environment Variables:**
+```bash
+# Log level control
+LOG_LEVEL=DEBUG|INFO|WARNING|ERROR
+
+# Format control
+ENABLE_STRUCTURED_LOGGING=true|false
+
+# File logging configuration
+LOG_TO_FILE=true|false
+LOG_DIR=logs                          # Directory for log files
+LOG_FILE_MAX_BYTES=10485760          # Max size per log file (10MB)
+LOG_FILE_BACKUP_COUNT=5              # Number of backup files
+LOG_ERROR_FILE_MAX_BYTES=5242880     # Max size per error log (5MB)
+LOG_ERROR_FILE_BACKUP_COUNT=3        # Number of error backup files
+```
+
+**Configuration Files:**
+- `config/logging.yaml` - Detailed logging configuration
+- `config/local.env` - Development environment settings
+- `config/docker.env` - Production environment settings
+
+### 🧪 Testing the Logging Implementation
+
+**Quick Test:**
+```bash
+# Quick verification of logging functionality
+./scripts/quick_logging_test.sh
+
+# Comprehensive logging system testing
+./scripts/test_logging.sh                    # Test all environments
+./scripts/test_logging.sh local              # Test local execution only
+./scripts/test_logging.sh docker             # Test Docker execution only
+```
+
+**Local Testing with Different Log Levels:**
+```bash
+# Start API with different log levels
+python main.py --log-level DEBUG             # Maximum detail
+python main.py --log-level INFO              # Standard information
+python main.py --log-level WARNING           # Warnings and errors only
+python main.py --log-level ERROR             # Errors only
+
+# Model training with logging
+python main.py train --log-level DEBUG       # Train with debug logs
+python main.py train --log-level INFO        # Train with info logs
+
+# Custom host, port, and logging
+python main.py --log-level DEBUG 0.0.0.0 8080
+
+# Show help
+python main.py --help
+```
+
+**Docker Testing with Different Log Levels:**
+```bash
+# Single container with custom log level
+docker run -p 8000:8000 -e LOG_LEVEL=DEBUG patient-risk-predictor
+
+# Docker Compose with environment variables
+LOG_LEVEL=DEBUG docker-compose up           # Debug level
+LOG_LEVEL=INFO docker-compose up            # Info level
+LOG_LEVEL=ERROR docker-compose up           # Error level
+
+# With structured logging control
+LOG_LEVEL=DEBUG ENABLE_STRUCTURED_LOGGING=false docker-compose up
+```
+
+### 🚀 Logging Demonstrations
+
+Interactive demos to explore logging features:
+
+```bash
+# Run all logging demonstrations
+./scripts/logging_demo.sh
+
+# Run specific demonstrations
+./scripts/logging_demo.sh basic              # Basic logging
+./scripts/logging_demo.sh api                # API request logging
+./scripts/logging_demo.sh training           # Model training logs
+./scripts/logging_demo.sh json               # JSON structured logs
+./scripts/logging_demo.sh performance        # Performance testing
+./scripts/logging_demo.sh analysis           # Log analysis
+
+# Use custom log directory
+LOG_DIR=/tmp/my-logs ./scripts/logging_demo.sh
+
+# Clean logs and run demo
+./scripts/logging_demo.sh --clean all
+```
+
+### 📊 Log Structure
+
+**Development (Text Format):**
+```
+2024-01-15 10:30:45 - patient-risk-predictor.api.app - INFO - Request completed successfully
+```
+
+**Production (JSON Format):**
+```json
+{
+  "timestamp": "2024-01-15 10:30:45",
+  "level": "INFO",
+  "logger": "patient-risk-predictor.api.app",
+  "message": "Request completed successfully",
+  "correlation_id": "req-001",
+  "environment": "production",
+  "extra": {
+    "event": "request_complete",
+    "status_code": 200,
+    "processing_time_ms": 45
+  }
+}
+```
+
+### 📁 Log Files
+
+**Local Development:**
+```
+logs/
+├── patient-risk-predictor.log          # All application logs
+├── patient-risk-predictor-errors.log   # Error-only logs
+└── *.log.N                             # Rotated log files
+```
+
+**Docker/Production:**
+Logs are sent to stdout/stderr for container log management.
+
+### 🔍 Log Analysis
+
+```bash
+# View real-time logs (default directory)
+tail -f logs/patient-risk-predictor.log
+
+# View logs from custom directory
+tail -f /custom/log/path/patient-risk-predictor.log
+
+# Analyze JSON logs
+cat logs/patient-risk-predictor.log | jq .
+
+# Filter by correlation ID
+grep "correlation_id.*req-001" logs/patient-risk-predictor.log
+
+# Count log levels
+grep -o '"level":"[^"]*"' logs/patient-risk-predictor.log | sort | uniq -c
+
+# Using environment variable for log directory
+export LOG_DIR=/custom/path
+tail -f $LOG_DIR/patient-risk-predictor.log
+```
+
+### 📖 Additional Information
+
+For more logging examples and advanced usage, run the demo script with different options to explore all available features.
 
 ## 🧪 Testing
 
@@ -279,11 +471,14 @@ pip install -r requirements.txt
 
 ### Test Coverage
 
+- **98% Code Coverage**: Comprehensive test coverage across all modules
 - **Unit Tests**: Test individual components in isolation
 - **Integration Tests**: Test complete workflows end-to-end
 - **API Tests**: Test FastAPI endpoints and data validation
 - **Model Tests**: Test ML model training and prediction
 - **Config Tests**: Test configuration management
+- **Logging Tests**: Test structured logging and middleware functionality
+- **Utility Tests**: Test logging configuration and request middleware
 
 ### GitHub Actions CI/CD
 
@@ -446,6 +641,20 @@ pip install -r requirements.txt
 ./scripts/docker.sh clean      # Clean up Docker resources
 ```
 
+### **📋 Logging & Monitoring**
+```bash
+./scripts/quick_logging_test.sh     # Quick logging verification
+./scripts/test_logging.sh           # Comprehensive logging tests
+./scripts/test_logging.sh local     # Test local execution
+./scripts/test_logging.sh docker    # Test Docker execution
+./scripts/logging_demo.sh           # Interactive logging demonstration
+./scripts/logging_demo.sh basic     # Basic logging features
+./scripts/logging_demo.sh api       # API request logging
+./scripts/logging_demo.sh training  # Model training logs
+./scripts/logging_demo.sh json      # JSON structured logs
+./scripts/logging_demo.sh analysis  # Analyze existing logs
+```
+
 ### **🧹 Maintenance**
 ```bash
 ./scripts/clean.sh            # Clean temporary files
@@ -469,9 +678,14 @@ patient-risk-predictor/
 ├── 📁 src/                    # Source code
 │   ├── 📁 api/                # FastAPI application
 │   ├── 📁 config/             # Configuration management
-│   └── 📁 model/              # ML model training
-├── 📁 tests/                  # Comprehensive test suite
+│   ├── 📁 model/              # ML model training
+│   └── 📁 utils/              # Utility modules (logging, middleware)
+├── 📁 tests/                  # Comprehensive test suite (98% coverage)
 │   ├── 📁 unit/               # Unit tests
+│   │   ├── 📁 api/            # API component tests
+│   │   ├── 📁 config/         # Configuration tests
+│   │   ├── 📁 model/          # Model training tests
+│   │   └── 📁 utils/          # Utility tests (logging, middleware)
 │   └── 📁 integration/        # Integration tests
 ├── 📄 main.py                 # Application entry point
 ├── 📄 requirements.txt        # Python dependencies

@@ -179,8 +179,9 @@ class TestGetLatestModelPath:
 
     @patch("src.api.ml_utils.mlflow")
     @patch("src.api.ml_utils.config")
-    def test_get_latest_model_path_prints_debug_info(self, mock_config, mock_mlflow, capsys):
-        """Test that function prints debug information."""
+    @patch("src.api.ml_utils.logger")
+    def test_get_latest_model_path_logs_debug_info(self, mock_logger, mock_config, mock_mlflow):
+        """Test that function logs debug information."""
         # Setup config mocks
         mock_config.experiment_name = "debug_experiment"
         mock_config.model_name = "debug_model"
@@ -198,10 +199,18 @@ class TestGetLatestModelPath:
         # Call function
         get_latest_model_path()
 
-        # Check that debug information was printed
-        captured = capsys.readouterr()
-        assert "Using MLflow URI: file:///debug/mlruns" in captured.out
-        assert "environment: debug" in captured.out
+        # Verify that info and debug logs were called
+        assert mock_logger.info.called
+        assert mock_logger.debug.called
+
+        # Check specific log calls
+        info_calls = [call.args for call in mock_logger.info.call_args_list]
+        debug_calls = [call.args for call in mock_logger.debug.call_args_list]
+
+        # Verify key log messages
+        assert any("Starting model path retrieval" in str(call) for call in info_calls)
+        assert any("Successfully found latest model" in str(call) for call in info_calls)
+        assert any("Searching for MLflow experiment" in str(call) for call in debug_calls)
 
 
 class TestMLUtilsIntegration:

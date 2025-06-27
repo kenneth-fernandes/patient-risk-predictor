@@ -207,7 +207,9 @@ class TestTrainPatientRiskModel:
         mock_mlflow.set_experiment.assert_called_once_with("patient_risk_prediction")
 
         # Verify logging calls within the run context
-        mock_mlflow.log_param.assert_called_with("n_estimators", 25)
+        mock_mlflow.log_param.assert_any_call("n_estimators", 25)
+        mock_mlflow.log_param.assert_any_call("test_size", 0.2)  # Default value
+        mock_mlflow.log_param.assert_any_call("random_state", 42)  # Default value
         mock_mlflow.log_metric.assert_called_once()
         mock_mlflow.sklearn.log_model.assert_called_once()
 
@@ -216,6 +218,8 @@ class TestTrainPatientRiskModel:
         assert log_model_call[0][0] == model  # First positional arg is the model
         assert log_model_call[1]["name"] == "random_forest_model"
         assert log_model_call[1]["signature"] == "test_signature"
+        # The new implementation also includes input_example parameter
+        assert "input_example" in log_model_call[1]
 
     @patch("src.model.train.fetch_ucirepo")
     @patch("src.model.train.mlflow")

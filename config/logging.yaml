@@ -1,0 +1,139 @@
+
+# Logging Configuration for Patient Risk Predictor
+# This file defines logging settings for different environments
+
+# Default logging configuration
+default:
+  version: 1
+  disable_existing_loggers: false
+  
+  formatters:
+    standard:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+    
+    json:
+      format: "%(message)s"
+      class: "src.utils.logging_config.StructuredFormatter"
+    
+    detailed:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(funcName)s:%(lineno)d - %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: standard
+      stream: ext://sys.stdout
+
+    file:
+      class: logging.handlers.RotatingFileHandler
+      level: DEBUG
+      formatter: detailed
+      filename: logs/patient-risk-predictor.log  # Will be overridden by LOG_DIR env var
+      maxBytes: 10485760  # 10MB - Can be overridden by LOG_FILE_MAX_BYTES
+      backupCount: 5      # Can be overridden by LOG_FILE_BACKUP_COUNT
+      
+    error_file:
+      class: logging.handlers.RotatingFileHandler
+      level: ERROR
+      formatter: detailed
+      filename: logs/patient-risk-predictor-errors.log  # Will be overridden by LOG_DIR env var
+      maxBytes: 5242880   # 5MB - Can be overridden by LOG_ERROR_FILE_MAX_BYTES
+      backupCount: 3      # Can be overridden by LOG_ERROR_FILE_BACKUP_COUNT
+
+  loggers:
+    patient-risk-predictor:
+      level: DEBUG
+      handlers: [console, file, error_file]
+      propagate: false
+      
+    src:
+      level: DEBUG
+      handlers: [console, file, error_file]
+      propagate: false
+      
+    uvicorn:
+      level: INFO
+      handlers: [console]
+      propagate: false
+      
+    mlflow:
+      level: WARNING
+      handlers: [console]
+      propagate: false
+
+  root:
+    level: INFO
+    handlers: [console]
+
+# Development environment overrides
+development:
+  handlers:
+    console:
+      level: DEBUG
+      formatter: detailed
+  
+  loggers:
+    patient-risk-predictor:
+      level: DEBUG
+    src:
+      level: DEBUG
+    root:
+      level: DEBUG
+
+# Production environment overrides  
+production:
+  handlers:
+    console:
+      level: INFO
+      formatter: json
+    # No file handlers in production (use container logging)
+    
+  loggers:
+    patient-risk-predictor:
+      level: INFO
+      handlers: [console]
+    src:
+      level: INFO  
+      handlers: [console]
+    root:
+      level: INFO
+      handlers: [console]
+
+# Docker environment overrides
+docker:
+  handlers:
+    console:
+      level: INFO
+      formatter: json
+      
+  loggers:
+    patient-risk-predictor:
+      level: INFO
+      handlers: [console]
+    src:
+      level: INFO
+      handlers: [console]
+    root:
+      level: INFO
+      handlers: [console]
+
+# Test environment overrides
+test:
+  handlers:
+    console:
+      level: WARNING
+      formatter: standard
+      
+  loggers:
+    patient-risk-predictor:
+      level: WARNING
+      handlers: [console]
+    src:
+      level: WARNING
+      handlers: [console]
+    root:
+      level: WARNING
+      handlers: [console]
