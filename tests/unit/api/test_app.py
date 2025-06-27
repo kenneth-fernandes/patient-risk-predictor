@@ -276,6 +276,49 @@ class TestModelLoading:
                 assert "Model path not found" in str(e)
                 mock_get_path.assert_called_once()
 
+    def test_load_model_function_success(self):
+        """Test load_model function success path."""
+        from src.api.app import load_model
+
+        with patch("src.api.app.get_latest_model_path") as mock_get_path:
+            with patch("src.api.app.mlflow.sklearn.load_model") as mock_load_model:
+                mock_get_path.return_value = "runs:/test_run/model"
+                mock_model = Mock()
+                mock_load_model.return_value = mock_model
+
+                result = load_model()
+
+                assert result == mock_model
+                mock_get_path.assert_called_once()
+                mock_load_model.assert_called_once_with("runs:/test_run/model")
+
+    def test_load_model_function_failure(self):
+        """Test load_model function failure path."""
+        from src.api.app import load_model
+
+        with patch("src.api.app.get_latest_model_path") as mock_get_path:
+            mock_get_path.side_effect = Exception("Model loading failed")
+
+            result = load_model()
+
+            assert result is None
+            mock_get_path.assert_called_once()
+
+    def test_get_model_function(self):
+        """Test get_model function."""
+        from src.api.app import get_model
+
+        # Test when no model is loaded
+        with patch("src.api.app.model", None):
+            result = get_model()
+            assert result is None
+
+        # Test when model is loaded
+        mock_model = Mock()
+        with patch("src.api.app.model", mock_model):
+            result = get_model()
+            assert result == mock_model
+
 
 class TestEndToEndWorkflow:
     """End-to-end tests for API workflow."""
