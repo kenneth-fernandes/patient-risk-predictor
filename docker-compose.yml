@@ -58,6 +58,10 @@ services:
     environment:
       - PYTHONPATH=/app
       - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENABLE_STRUCTURED_LOGGING=${ENABLE_STRUCTURED_LOGGING:-true}
+      - LOG_TO_FILE=${LOG_TO_FILE:-false}
+      - LOG_DIR=/app/logs
     volumes:
       - mlruns_data:/app/mlruns
       - logs_data:/app/logs
@@ -82,6 +86,10 @@ services:
       - PYTHONPATH=/app
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - GIT_PYTHON_REFRESH=quiet
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENABLE_STRUCTURED_LOGGING=${ENABLE_STRUCTURED_LOGGING:-true}
+      - LOG_TO_FILE=${LOG_TO_FILE:-false}
+      - LOG_DIR=/app/logs
     volumes:
       - mlruns_data:/app/mlruns
       - logs_data:/app/logs
