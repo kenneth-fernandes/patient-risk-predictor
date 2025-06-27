@@ -4,9 +4,7 @@ import logging
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
-
-import pytest
+from unittest.mock import patch
 
 from src.utils.logging_config import (
     LoggingConfig,
@@ -177,7 +175,7 @@ loggers:
 
         try:
             config = LoggingConfig()
-            with patch.object(config, 'config_file', Path(yaml_path)):
+            with patch.object(config, "config_file", Path(yaml_path)):
                 config._load_config_file()
                 assert config.yaml_config is not None
                 assert config.yaml_config["version"] == 1
@@ -192,7 +190,7 @@ loggers:
 
         try:
             config = LoggingConfig()
-            with patch.object(config, 'config_file', Path(yaml_path)):
+            with patch.object(config, "config_file", Path(yaml_path)):
                 config._load_config_file()
                 assert config.yaml_config is None
         finally:
@@ -204,11 +202,11 @@ loggers:
             with patch.dict(os.environ, {"LOG_DIR": temp_dir}):
                 config = LoggingConfig()
                 logger = config.setup_logging()
-                
+
                 # Check that logger is configured
                 assert isinstance(logger, logging.Logger)
                 assert logger.name == "patient-risk-predictor"
-                
+
                 # Test logging works
                 logger.info("Test info message")
                 logger.error("Test error message")
@@ -218,7 +216,7 @@ loggers:
         with patch.dict(os.environ, {"ENABLE_STRUCTURED_LOGGING": "true"}):
             config = LoggingConfig()
             logger = config.setup_logging()
-            
+
             # Should have JSON formatting enabled
             assert config.use_json_format
             assert isinstance(logger, logging.Logger)
@@ -238,7 +236,7 @@ class TestLoggingUtilities:
         with patch.dict(os.environ, {"LOG_LEVEL": "WARNING"}):
             # Should not raise exception
             setup_application_logging()
-            
+
             # Test that we can get a logger after setup
             logger = get_logger("test")
             assert isinstance(logger, logging.Logger)
@@ -261,17 +259,17 @@ class TestLoggingIntegration:
             ):
                 # Setup logging
                 setup_application_logging()
-                
+
                 # Get logger and test correlation tracking
                 logger = get_logger("test_module")
                 set_correlation_id("test-correlation-123")
-                
+
                 # Log messages
                 logger.info("Test message", extra={"event": "test_event"})
                 logger.error("Test error", extra={"error_code": 500})
-                
+
                 clear_correlation_id()
-                
+
                 # Verify logger works
                 assert logger.name == "patient-risk-predictor.test_module"
 
