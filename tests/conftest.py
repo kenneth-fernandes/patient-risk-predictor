@@ -163,9 +163,9 @@ def test_config_files(tmp_path):
     config_dir = tmp_path / "config"
     config_dir.mkdir()
 
-    # Create test local.env
-    local_env = config_dir / "local.env"
-    local_env.write_text(
+    # Create test development.env
+    development_env = config_dir / "development.env"
+    development_env.write_text(
         """
 ENVIRONMENT=development
 HOST=127.0.0.1

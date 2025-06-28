@@ -143,6 +143,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Sensitive Configuration Files
+config/secrets.env
+config/production.env
+config/*.env
+!config/*.env.example
+
 # Spyder project settings
 .spyderproject
 .spyproject

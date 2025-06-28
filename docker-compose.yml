@@ -1,19 +1,17 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database for MLflow
   postgres:
     image: postgres:13
     container_name: patient-risk-predictor-postgres
     environment:
-      - POSTGRES_DB=mlflow
-      - POSTGRES_USER=mlflow
-      - POSTGRES_PASSWORD=mlflow
+      - POSTGRES_DB=${POSTGRES_DB:-mlflow}
+      - POSTGRES_USER=${POSTGRES_USER:-mlflow}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mlflow"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mlflow}"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -25,7 +23,7 @@ services:
     ports:
       - "5001:5000"
     environment:
-      - MLFLOW_BACKEND_STORE_URI=postgresql://mlflow:mlflow@postgres:5432/mlflow
+      - MLFLOW_BACKEND_STORE_URI=postgresql://${POSTGRES_USER:-mlflow}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mlflow}
       - MLFLOW_DEFAULT_ARTIFACT_ROOT=/data/artifacts
     volumes:
       - mlflow_data:/data
@@ -39,15 +37,15 @@ services:
         mkdir -p /data/artifacts &&
         chmod 777 /data &&
         chmod 777 /data/artifacts &&
-        mlflow server --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow --default-artifact-root /data/artifacts --host 0.0.0.0 --port 5000
+        mlflow server --backend-store-uri postgresql://${POSTGRES_USER:-mlflow}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mlflow} --default-artifact-root /data/artifacts --host 0.0.0.0 --port 5000
       "
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
-      interval: 30s
-      timeout: 15s
-      retries: 5
-      start_period: 120s
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health", "||", "curl", "-f", "http://localhost:5000/"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
 
   # Main API Service
   api:
@@ -67,9 +65,21 @@ services:
       - logs_data:/app/logs
       - mlflow_data:/data
     depends_on:
+      postgres:
+        condition: service_healthy
       mlflow:
         condition: service_healthy
     restart: unless-stopped
+    command: >
+      bash -c "
+        echo 'Waiting for MLflow to be ready...' &&
+        until curl -f http://mlflow:5000/ > /dev/null 2>&1; do
+          echo 'MLflow not ready, waiting 5 seconds...'
+          sleep 5
+        done &&
+        echo 'MLflow is ready, starting API service...' &&
+        python main.py
+      "
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s

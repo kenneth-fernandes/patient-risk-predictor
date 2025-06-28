@@ -203,6 +203,219 @@ HOST=0.0.0.0
 PORT=8000
 ```
 
+## ⚙️ Configuration Management
+
+This project uses a sophisticated configuration system that separates public settings from sensitive credentials for maximum security.
+
+### 📁 Configuration File Structure
+
+```
+config/
+├── 📄 quick-start.env.example      # Quick setup template
+├── 📄 development.env              # Local development settings
+├── 📄 docker.env                   # Docker container settings
+├── 📄 production.env.example       # Production environment template
+├── 📄 secrets.env.example          # Sensitive credentials template
+├── 📄 production.env               # Actual production settings
+├── 📄 secrets.env                  # Actual sensitive credentials
+└── 📄 logging.yaml                 # Logging configuration
+```
+
+### 🔒 Security Model
+
+**Template Configuration Files:**
+- `quick-start.env.example` - Quick setup template with basic configuration
+- `development.env` - Local development settings
+- `docker.env` - Docker container settings
+- `production.env.example` - Production environment template
+- `secrets.env.example` - Sensitive credentials template
+- `logging.yaml` - Logging configuration
+
+**Environment-Specific Configuration Files:**
+- `secrets.env` - Database passwords, API keys, encryption keys
+- `production.env` - Production settings with actual credentials
+- Any `*.env` files with real credentials
+
+### 🚀 Configuration Usage
+
+#### For Local Development
+```bash
+# Use the development configuration (already set up)
+export $(cat config/development.env | xargs)
+python main.py
+
+# Or use the run script (automatically loads config)
+./scripts/run_local.sh
+```
+
+#### For Production Deployment
+```bash
+# 1. Copy the templates to create your actual config files
+cp config/production.env.example config/production.env
+cp config/secrets.env.example config/secrets.env
+
+# 2. Edit both files with your actual values
+nano config/production.env     # Update production settings
+nano config/secrets.env        # Add your actual passwords and keys
+
+# 3. Load both configurations
+export $(cat config/production.env | xargs)
+export $(cat config/secrets.env | xargs)
+
+# 4. Start your application
+python main.py
+```
+
+#### For Docker Deployment
+```bash
+# Docker automatically loads config/docker.env for non-sensitive settings
+# Set sensitive values via environment variables or docker-compose
+
+# Option 1: Environment variables (REQUIRED)
+POSTGRES_PASSWORD=your_secure_password docker-compose up --build
+
+# Option 2: Create .env file in project root (from config/quick-start.env.example)
+cp config/quick-start.env.example .env
+# Edit .env with your passwords
+docker-compose up --build
+```
+
+### 🗃️ Configuration Categories
+
+#### Database Configuration
+```bash
+# In secrets.env (SENSITIVE)
+POSTGRES_PASSWORD=your_secure_password_here
+POSTGRES_USER=mlflow
+POSTGRES_DB=mlflow
+```
+
+#### Server Configuration
+```bash
+# In development.env or production.env (PUBLIC)
+HOST=127.0.0.1              # Local: 127.0.0.1, Docker: 0.0.0.0
+PORT=8000
+ENVIRONMENT=development     # development, production
+WORKERS=1                   # Number of API workers
+```
+
+#### Logging Configuration
+```bash
+# In any .env file (PUBLIC)
+LOG_LEVEL=DEBUG             # DEBUG, INFO, WARNING, ERROR
+ENABLE_STRUCTURED_LOGGING=false  # true for JSON logs, false for text
+LOG_TO_FILE=true            # Save logs to files
+LOG_DIR=logs                # Directory for log files
+```
+
+#### MLflow Configuration
+```bash
+# In development.env (PUBLIC)
+MLFLOW_TRACKING_URI=file:./mlruns        # Local file-based tracking
+
+# In docker.env (PUBLIC)
+MLFLOW_TRACKING_URI=http://mlflow:5000   # Docker service
+```
+
+### 🛡️ Security Best Practices
+
+1. **Protect sensitive files**: The `.gitignore` automatically excludes `config/*.env` files
+2. **Use strong passwords**: Change all default passwords, especially `POSTGRES_PASSWORD`
+3. **Separate environments**: Use different credentials for development vs production
+4. **Environment variables**: For production, consider using environment variables instead of files
+5. **Regular rotation**: Periodically update passwords and API keys
+
+### 🔧 Configuration Examples
+
+#### Quick Local Setup
+```bash
+# Copy the quick start template (for new users)
+cp config/quick-start.env.example .env
+# Edit with your preferences, then run
+docker-compose up --build
+```
+
+#### Advanced Production Setup
+```bash
+# 1. Setup production configuration
+cp config/production.env.example config/production.env
+cp config/secrets.env.example config/secrets.env
+
+# 2. Edit production.env (public settings)
+cat > config/production.env << EOF
+HOST=0.0.0.0
+PORT=8000
+ENVIRONMENT=production
+WORKERS=4
+LOG_LEVEL=INFO
+ENABLE_STRUCTURED_LOGGING=true
+LOG_TO_FILE=true
+MLFLOW_TRACKING_URI=http://mlflow:5000
+EOF
+
+# 3. Edit secrets.env (sensitive credentials)
+cat > config/secrets.env << EOF
+POSTGRES_PASSWORD=$(openssl rand -base64 32)
+POSTGRES_USER=mlflow_prod
+POSTGRES_DB=mlflow_prod
+EOF
+
+# 4. Load and run
+export $(cat config/production.env | xargs)
+export $(cat config/secrets.env | xargs)
+docker-compose up --build -d
+```
+
+### 🚨 Configuration Troubleshooting
+
+**Issue: "Database connection failed"**
+```bash
+# Check if credentials are loaded
+echo $POSTGRES_PASSWORD
+echo $POSTGRES_USER
+
+# If POSTGRES_PASSWORD is empty, set it:
+export POSTGRES_PASSWORD=your_secure_password_here
+
+# Verify database container is running
+docker-compose ps postgres
+
+# Check database logs
+docker-compose logs postgres
+```
+
+**Issue: "POSTGRES_PASSWORD environment variable not set"**
+```bash
+# Docker requires POSTGRES_PASSWORD to be set explicitly
+# Option 1: Set via environment variable
+export POSTGRES_PASSWORD=your_secure_password_here
+docker-compose up --build
+
+# Option 2: Create .env file in project root
+echo "POSTGRES_PASSWORD=your_secure_password_here" > .env
+docker-compose up --build
+```
+
+**Issue: "Config file not found"**
+```bash
+# Verify config files exist
+ls -la config/
+
+# Create missing files from templates
+cp config/production.env.example config/production.env
+cp config/secrets.env.example config/secrets.env
+```
+
+**Issue: "Environment variables not loading"**
+```bash
+# Load config manually
+export $(cat config/development.env | xargs)
+export $(cat config/secrets.env | xargs)
+
+# Verify they're loaded
+env | grep -E "(POSTGRES|LOG_|MLFLOW)"
+```
+
 ## 📋 Logging & Monitoring
 
 The application includes a comprehensive logging system for production-ready error tracking, debugging, and monitoring.
@@ -668,8 +881,14 @@ pip install -r requirements.txt
 patient-risk-predictor/
 ├── 📁 config/                 # Configuration files
 │   ├── 📁 testing/            # Test configurations (pytest.ini, .safety-project.ini)
+│   ├── quick-start.env.example # Quick setup template
+│   ├── development.env        # Local development settings
 │   ├── docker.env             # Docker environment variables
-│   └── local.env              # Local development environment variables
+│   ├── production.env.example # Production template
+│   ├── secrets.env.example    # Sensitive credentials template
+│   ├── production.env         # Actual production settings
+│   ├── secrets.env            # Actual sensitive credentials
+│   └── logging.yaml           # Logging configuration
 ├── 📁 reports/                # Generated reports (gitignored)
 │   ├── 📁 coverage/           # Coverage reports (XML, HTML, .coverage)
 │   ├── 📁 security/           # Security scan results
