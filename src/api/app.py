@@ -111,12 +111,13 @@ def health_check():
 @app.post("/reload-model")
 def reload_model():
     """Reload the model from MLflow (useful after training)."""
+
     logger.info("Model reload requested", extra={"event": "model_reload_request"})
-    
+
     previous_model_status = get_model() is not None
     load_model()
     new_model_status = get_model() is not None
-    
+
     if new_model_status:
         message = "Model reloaded successfully"
         status = "success"
@@ -124,8 +125,10 @@ def reload_model():
     else:
         message = "No trained model found to load"
         status = "no_model_available"
-        logger.info("Model reload failed - no model available", extra={"event": "model_reload_no_model"})
-    
+        logger.info(
+            "Model reload failed - no model available", extra={"event": "model_reload_no_model"}
+        )
+
     return {
         "message": message,
         "status": status,
@@ -143,16 +146,16 @@ def predict(data: PatientData):
     )
 
     current_model = get_model()
-    
+
     # Auto-reload behavior only in development/testing environments
     if current_model is None and config.environment in ["development", "test", "local"]:
         logger.info(
-            "Development mode: attempting auto-reload", 
-            extra={"event": "auto_reload_attempt", "environment": config.environment}
+            "Development mode: attempting auto-reload",
+            extra={"event": "auto_reload_attempt", "environment": config.environment},
         )
         load_model()
         current_model = get_model()
-    
+
     if current_model is None:
         # Environment-specific error messages
         if config.environment in ["development", "test", "local"]:
@@ -161,14 +164,14 @@ def predict(data: PatientData):
         else:
             detail = "Model not loaded. Call /reload-model after training."
             log_level = "error"
-        
+
         if log_level == "warning":
             logger.warning(
                 "Prediction failed - no model available",
                 extra={
                     "event": "prediction_model_unavailable",
                     "environment": config.environment,
-                    "auto_reload_attempted": True
+                    "auto_reload_attempted": True,
                 },
             )
         else:
@@ -177,7 +180,7 @@ def predict(data: PatientData):
                 extra={
                     "event": "prediction_model_unavailable",
                     "environment": config.environment,
-                    "auto_reload_attempted": False
+                    "auto_reload_attempted": False,
                 },
             )
         raise HTTPException(status_code=503, detail=detail)

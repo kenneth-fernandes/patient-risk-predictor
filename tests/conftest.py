@@ -9,9 +9,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
+# Test constants
+TEST_MLRUNS_DIR = "/tmp/test_mlruns"
+
 # Set test environment variables
 os.environ["ENVIRONMENT"] = "test"
-os.environ["MLFLOW_TRACKING_URI"] = "file:///tmp/test_mlruns"
+os.environ["MLFLOW_TRACKING_URI"] = f"file://{TEST_MLRUNS_DIR}"
 os.environ["CI"] = os.getenv("CI", "false")
 
 
@@ -23,7 +26,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: mark test as slow running")
 
     # Create test directories
-    os.makedirs("/tmp/test_mlruns", exist_ok=True)
+    os.makedirs(TEST_MLRUNS_DIR, exist_ok=True)
     os.makedirs("logs", exist_ok=True)
 
 
@@ -46,7 +49,7 @@ def pytest_collection_modifyitems(config, items):
 def setup_test_environment():
     """Set up test environment for the entire test session."""
     # Ensure test directories exist
-    test_dirs = ["/tmp/test_mlruns", "logs", "htmlcov"]
+    test_dirs = [TEST_MLRUNS_DIR, "logs", "htmlcov"]
 
     for directory in test_dirs:
         os.makedirs(directory, exist_ok=True)
@@ -58,7 +61,7 @@ def setup_test_environment():
         # In CI, clean up test artifacts
         import shutil
 
-        for directory in ["/tmp/test_mlruns"]:
+        for directory in [TEST_MLRUNS_DIR]:
             if os.path.exists(directory):
                 shutil.rmtree(directory, ignore_errors=True)
 
