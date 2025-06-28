@@ -620,6 +620,9 @@ pip install -r requirements.txt
 # Generate detailed coverage report
 ./scripts/test.sh coverage
 
+# Generate Codecov-compatible coverage report
+./scripts/test.sh codecov
+
 # Run complete CI test suite
 ./scripts/test.sh ci
 
@@ -692,6 +695,52 @@ pip install -r requirements.txt
 - **Config Tests**: Test configuration management
 - **Logging Tests**: Test structured logging and middleware functionality
 - **Utility Tests**: Test logging configuration and request middleware
+
+### 📊 Coverage Reporting with Codecov
+
+The project includes dedicated Codecov integration for advanced coverage reporting and tracking:
+
+```bash
+# Generate Codecov-compatible coverage report
+./scripts/codecov.sh
+./scripts/codecov.sh test
+
+# Generate local coverage for validation
+./scripts/codecov.sh local
+
+# Validate coverage data for Codecov compatibility
+./scripts/codecov.sh validate
+
+# Upload coverage to Codecov (requires CODECOV_TOKEN)
+CODECOV_TOKEN=your_token ./scripts/codecov.sh upload
+
+# Full CI pipeline with Codecov integration
+./scripts/codecov.sh ci
+
+# Alternative: Use main test script
+./scripts/test.sh codecov
+```
+
+**Codecov Features:**
+- 📈 **Coverage Tracking**: Automatic coverage tracking across commits and PRs
+- 🎯 **Coverage Thresholds**: Configurable coverage requirements and quality gates
+- 📊 **Visual Reports**: Interactive coverage reports with line-by-line analysis
+- 🔍 **Diff Coverage**: Shows coverage changes for new code in pull requests
+- 📋 **Integration**: Seamless GitHub integration with status checks and comments
+- 🌿 **Branch Analysis**: Coverage comparison across different branches
+
+**Environment Variables:**
+```bash
+# Required for private repositories
+export CODECOV_TOKEN=your_codecov_upload_token
+
+# Optional: CI environment detection
+export CI=true  # Automatically set in CI environments
+```
+
+**Generated Files:**
+- `coverage.xml` - Codecov-compatible XML coverage report
+- `htmlcov/index.html` - Local HTML coverage report for detailed analysis
 
 ### GitHub Actions CI/CD
 
