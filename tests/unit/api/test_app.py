@@ -98,10 +98,11 @@ class TestPredictEndpoint:
         """Test prediction when model is not loaded."""
         with patch("src.api.app.model", None):
             with patch("src.api.app.get_model", return_value=None):
-                response = client.post("/predict", json=sample_patient_data)
+                with patch("src.api.app.load_model", return_value=None):  # Mock auto-reload attempt
+                    response = client.post("/predict", json=sample_patient_data)
 
-                assert response.status_code == 503
-                assert "Model not loaded" in response.json()["detail"]
+                    assert response.status_code == 503
+                    assert "No model available" in response.json()["detail"]
 
     def test_predict_invalid_input_missing_fields(self, client):
         """Test prediction with missing required fields."""
@@ -205,11 +206,12 @@ class TestPredictEndpoint:
 
         with patch("src.api.app.model", None):
             with patch("src.api.app.get_model", return_value=None):
-                with pytest.raises(HTTPException) as exc_info:
-                    predict(patient_data)
+                with patch("src.api.app.load_model", return_value=None):  # Mock auto-reload attempt
+                    with pytest.raises(HTTPException) as exc_info:
+                        predict(patient_data)
 
-                assert exc_info.value.status_code == 503
-                assert "Model not loaded" in str(exc_info.value.detail)
+                    assert exc_info.value.status_code == 503
+                    assert "No model available" in str(exc_info.value.detail)
 
 
 class TestAppConfiguration:
