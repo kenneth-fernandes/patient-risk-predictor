@@ -68,10 +68,10 @@ class Config:
             load_env_file(docker_env)
             self._env_file_loaded = str(docker_env)
         else:
-            # Load local environment file
-            local_env = project_root / "config" / "local.env"
-            load_env_file(local_env)
-            self._env_file_loaded = str(local_env)
+            # Load development environment file
+            development_env = project_root / "config" / "development.env"
+            load_env_file(development_env)
+            self._env_file_loaded = str(development_env)
 
     @property
     def mlflow_tracking_uri(self):

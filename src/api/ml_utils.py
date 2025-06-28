@@ -16,10 +16,10 @@ def get_latest_model_path(experiment_name=None, model_name=None):
         model_name: Name of the model artifact
 
     Returns:
-        str: MLflow model URI
+        str: MLflow model URI, or None if no model exists yet
 
     Raises:
-        FileNotFoundError: If no model is found or MLflow access fails
+        FileNotFoundError: If MLflow access fails for technical reasons
     """
     # Use config defaults if not provided
     experiment_name = experiment_name or config.experiment_name
@@ -45,11 +45,11 @@ def get_latest_model_path(experiment_name=None, model_name=None):
         experiment = mlflow.get_experiment_by_name(experiment_name)
 
         if experiment is None:
-            logger.error(
-                "MLflow experiment not found",
+            logger.info(
+                "MLflow experiment not found - no models trained yet",
                 extra={"event": "experiment_not_found", "experiment_name": experiment_name},
             )
-            raise ValueError(f"Experiment '{experiment_name}' not found")
+            return None
 
         logger.debug(
             "Found MLflow experiment",
@@ -63,15 +63,15 @@ def get_latest_model_path(experiment_name=None, model_name=None):
         )
 
         if runs.empty:
-            logger.error(
-                "No model runs found in experiment",
+            logger.info(
+                "No model runs found in experiment - no models trained yet",
                 extra={
                     "event": "no_runs_found",
                     "experiment_name": experiment_name,
                     "experiment_id": experiment.experiment_id,
                 },
             )
-            raise FileNotFoundError("No runs found in experiment")
+            return None
 
         latest_run_id = runs.iloc[0]["run_id"]
         run_start_time = runs.iloc[0]["start_time"]
@@ -92,15 +92,29 @@ def get_latest_model_path(experiment_name=None, model_name=None):
         return model_uri
 
     except Exception as e:
-        logger.error(
-            "Failed to retrieve model path",
-            extra={
-                "event": "model_path_error",
-                "experiment_name": experiment_name,
-                "model_name": model_name,
-                "error_type": type(e).__name__,
-                "error_message": str(e),
-            },
-            exc_info=True,
-        )
-        raise FileNotFoundError(f"Failed to get latest model: {str(e)}")
+        # Check if this is a connectivity issue vs. missing data
+        if "connection" in str(e).lower() or "network" in str(e).lower():
+            logger.error(
+                "MLflow connectivity error",
+                extra={
+                    "event": "mlflow_connection_error",
+                    "experiment_name": experiment_name,
+                    "model_name": model_name,
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                },
+                exc_info=True,
+            )
+            raise FileNotFoundError(f"Failed to connect to MLflow: {str(e)}")
+        else:
+            logger.info(
+                "No models available yet - training required",
+                extra={
+                    "event": "no_models_available",
+                    "experiment_name": experiment_name,
+                    "model_name": model_name,
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                },
+            )
+            return None

@@ -4,6 +4,7 @@ import mlflow.sklearn
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 
+from ..config.config import config
 from ..utils.logging_config import get_logger, setup_application_logging
 from ..utils.middleware import HealthCheckLoggingMiddleware, LoggingMiddleware
 from .ml_utils import get_latest_model_path  # Use relative import
@@ -34,6 +35,15 @@ def load_model():
     try:
         logger.info("Starting model loading process")
         model_path = get_latest_model_path()
+
+        if model_path is None:
+            logger.info(
+                "No trained model found - API will start without model",
+                extra={"event": "no_model_available"},
+            )
+            model = None
+            setattr(app, "model", None)
+            return model
 
         logger.info("Loading model from MLflow", extra={"model_path": model_path})
         model = mlflow.sklearn.load_model(model_path)
@@ -98,6 +108,35 @@ def health_check():
     }
 
 
+@app.post("/reload-model")
+def reload_model():
+    """Reload the model from MLflow (useful after training)."""
+
+    logger.info("Model reload requested", extra={"event": "model_reload_request"})
+
+    previous_model_status = get_model() is not None
+    load_model()
+    new_model_status = get_model() is not None
+
+    if new_model_status:
+        message = "Model reloaded successfully"
+        status = "success"
+        logger.info("Model reload successful", extra={"event": "model_reload_success"})
+    else:
+        message = "No trained model found to load"
+        status = "no_model_available"
+        logger.info(
+            "Model reload failed - no model available", extra={"event": "model_reload_no_model"}
+        )
+
+    return {
+        "message": message,
+        "status": status,
+        "previous_model_loaded": previous_model_status,
+        "current_model_loaded": new_model_status,
+    }
+
+
 @app.post("/predict")
 def predict(data: PatientData):
     """Predict heart disease risk based on patient data."""
@@ -107,12 +146,44 @@ def predict(data: PatientData):
     )
 
     current_model = get_model()
-    if current_model is None:
-        logger.error(
-            "Prediction failed - model not available",
-            extra={"event": "prediction_model_unavailable"},
+
+    # Auto-reload behavior only in development/testing environments
+    if current_model is None and config.environment in ["development", "test", "local"]:
+        logger.info(
+            "Development mode: attempting auto-reload",
+            extra={"event": "auto_reload_attempt", "environment": config.environment},
         )
-        raise HTTPException(status_code=503, detail="Model not loaded. Please check server logs.")
+        load_model()
+        current_model = get_model()
+
+    if current_model is None:
+        # Environment-specific error messages
+        if config.environment in ["development", "test", "local"]:
+            detail = "No model available. Train a model first or call /reload-model to retry."
+            log_level = "warning"
+        else:
+            detail = "Model not loaded. Call /reload-model after training."
+            log_level = "error"
+
+        if log_level == "warning":
+            logger.warning(
+                "Prediction failed - no model available",
+                extra={
+                    "event": "prediction_model_unavailable",
+                    "environment": config.environment,
+                    "auto_reload_attempted": True,
+                },
+            )
+        else:
+            logger.error(
+                "Prediction failed - no model available",
+                extra={
+                    "event": "prediction_model_unavailable",
+                    "environment": config.environment,
+                    "auto_reload_attempted": False,
+                },
+            )
+        raise HTTPException(status_code=503, detail=detail)
 
     try:
         # Convert input to DataFrame

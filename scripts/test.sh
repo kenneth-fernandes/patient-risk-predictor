@@ -65,6 +65,7 @@ show_usage() {
     echo -e "  ${GREEN}quick${NC}             Run tests without coverage (faster)"
     echo -e "  ${GREEN}parallel${NC}          Run tests in parallel"
     echo -e "  ${GREEN}coverage${NC}          Generate detailed coverage report"
+    echo -e "  ${GREEN}codecov${NC}           Generate Codecov-compatible coverage report"
     echo -e "  ${GREEN}ci${NC}                Run CI test suite"
     echo -e "  ${GREEN}help${NC}              Show this help message"
     echo ""
@@ -74,6 +75,7 @@ show_usage() {
     echo -e "  ${CYAN}$0 quick${NC}          ${WHITE}# Quick test run${NC}"
     echo -e "  ${CYAN}$0 unit${NC}           ${WHITE}# Unit tests only${NC}"
     echo -e "  ${CYAN}$0 coverage${NC}       ${WHITE}# Generate coverage report${NC}"
+    echo -e "  ${CYAN}$0 codecov${NC}        ${WHITE}# Generate Codecov coverage${NC}"
     echo ""
 }
 
@@ -201,6 +203,34 @@ test_coverage() {
     fi
 }
 
+# Generate Codecov-compatible coverage report
+test_codecov() {
+    print_section "☁️  GENERATING CODECOV COVERAGE"
+    print_info "Running tests and generating Codecov-compatible coverage..."
+    
+    # Delegate to dedicated codecov script
+    if [ -f "scripts/codecov.sh" ]; then
+        ./scripts/codecov.sh test
+    else
+        print_warning "codecov.sh script not found, using fallback..."
+        python -m pytest \
+            --cov=src \
+            --cov-report=xml:coverage.xml \
+            --cov-report=term-missing \
+            tests/
+        
+        local exit_code=$?
+        
+        if [ $exit_code -eq 0 ]; then
+            print_success "Codecov coverage generated!"
+            print_info "XML report: coverage.xml"
+        else
+            print_error "Codecov coverage generation failed (exit code: $exit_code)"
+            exit $exit_code
+        fi
+    fi
+}
+
 # Run CI test suite
 test_ci() {
     print_section "🤖 RUNNING CI TEST SUITE"
@@ -244,6 +274,9 @@ case $COMMAND in
         ;;
     coverage)
         test_coverage
+        ;;
+    codecov)
+        test_codecov
         ;;
     ci)
         test_ci

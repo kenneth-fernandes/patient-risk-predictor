@@ -81,9 +81,9 @@ class TestGetLatestModelPath:
         # Mock experiment not found
         mock_mlflow.get_experiment_by_name.return_value = None
 
-        # Should raise ValueError
-        with pytest.raises(FileNotFoundError, match="Failed to get latest model"):
-            get_latest_model_path()
+        # Should return None gracefully
+        result = get_latest_model_path()
+        assert result is None
 
     @patch("src.api.ml_utils.mlflow")
     @patch("src.api.ml_utils.config")
@@ -101,9 +101,9 @@ class TestGetLatestModelPath:
         # Mock empty search results
         mock_mlflow.search_runs.return_value = pd.DataFrame()
 
-        # Should raise FileNotFoundError
-        with pytest.raises(FileNotFoundError, match="Failed to get latest model"):
-            get_latest_model_path()
+        # Should return None gracefully
+        result = get_latest_model_path()
+        assert result is None
 
     @patch("src.api.ml_utils.mlflow")
     @patch("src.api.ml_utils.config")
@@ -113,11 +113,26 @@ class TestGetLatestModelPath:
         mock_config.experiment_name = "test_experiment"
         mock_config.model_name = "test_model"
 
-        # Mock MLflow exception
-        mock_mlflow.get_experiment_by_name.side_effect = Exception("MLflow connection error")
+        # Mock MLflow exception (non-connection error)
+        mock_mlflow.get_experiment_by_name.side_effect = Exception("Some other MLflow error")
 
-        # Should raise FileNotFoundError with wrapped exception
-        with pytest.raises(FileNotFoundError, match="Failed to get latest model"):
+        # Should return None gracefully for non-connection errors
+        result = get_latest_model_path()
+        assert result is None
+
+    @patch("src.api.ml_utils.mlflow")
+    @patch("src.api.ml_utils.config")
+    def test_get_latest_model_path_connection_exception(self, mock_config, mock_mlflow):
+        """Test handling of MLflow connection exceptions."""
+        # Setup config mocks
+        mock_config.experiment_name = "test_experiment"
+        mock_config.model_name = "test_model"
+
+        # Mock MLflow connection exception
+        mock_mlflow.get_experiment_by_name.side_effect = Exception("Connection error")
+
+        # Should raise FileNotFoundError for connection errors
+        with pytest.raises(FileNotFoundError, match="Failed to connect to MLflow"):
             get_latest_model_path()
 
     @patch("src.api.ml_utils.mlflow")
